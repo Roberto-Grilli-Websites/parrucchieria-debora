@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --red: #C41230;
+    --red-dark: #9E0E26;
+    --red-light: #E8304A;
+    --cream: #F5F0EA;
+    --cream-dark: #EDE6DC;
+    --charcoal: #1C1C1C;
+    --black: #0E0E0E;
+    --gray: #6B6B6B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #F5F0EA;
+    color: #1C1C1C;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Cormorant Garamond', serif;
+  }
+}
+
+@layer components {
+
+  .btn-primary {
+    display: inline-block;
+    background: #C41230;
+    color: #F5F0EA;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.9rem 2.5rem;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.35s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #9E0E26;
+    transform: translateX(-100%);
+    transition: transform 0.35s ease;
+  }
+
+  .btn-primary:hover::before { transform: translateX(0); }
+
+  .btn-primary span { position: relative; z-index: 1; }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(196, 18, 48, 0.35);
+  }
+
+  .btn-outline {
+    display: inline-block;
+    background: transparent;
+    color: #C41230;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.9rem 2.5rem;
+    text-decoration: none;
+    border: 1.5px solid #C41230;
+    cursor: pointer;
+    transition: all 0.35s ease;
+  }
+
+  .btn-outline:hover {
+    background: #C41230;
+    color: #F5F0EA;
+    transform: translateY(-2px);
+  }
+
+  .btn-outline-light {
+    display: inline-block;
+    background: transparent;
+    color: #F5F0EA;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.9rem 2.5rem;
+    text-decoration: none;
+    border: 1.5px solid rgba(245,240,234,0.5);
+    cursor: pointer;
+    transition: all 0.35s ease;
+  }
+
+  .btn-outline-light:hover {
+    border-color: #F5F0EA;
+    background: rgba(245,240,234,0.08);
+    transform: translateY(-2px);
+  }
+
+  .nav-link {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #F5F0EA;
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 3px;
+    transition: color 0.3s;
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 1.5px;
+    background: #C41230;
+    transition: width 0.3s ease;
+  }
+
+  .nav-link:hover { color: #C41230; }
+  .nav-link:hover::after { width: 100%; }
+
+  .red-bar {
+    width: 36px; height: 2px;
+    background: #C41230;
+  }
+
+  .section-tag {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: #C41230;
+  }
+
+  .service-tile {
+    background: white;
+    padding: 2.5rem 2rem;
+    transition: all 0.4s ease;
+    border-bottom: 3px solid transparent;
+    cursor: default;
+  }
+
+  .service-tile:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+    border-bottom-color: #C41230;
+  }
+
+  .gallery-item {
+    overflow: hidden;
+    position: relative;
+    background: #1C1C1C;
+    aspect-ratio: 3/4;
+  }
+
+  .gallery-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(196,18,48,0.7) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .gallery-item:hover::after { opacity: 1; }
+}

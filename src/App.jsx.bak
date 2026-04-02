@@ -1,0 +1,884 @@
+import { useState, useEffect, useRef } from 'react'
+import {
+  Scissors, Star, MapPin, Phone, Clock,
+  ChevronDown, Menu, X, Sparkles,
+  Award, Heart, Zap, Quote, ArrowRight, Camera
+} from 'lucide-react'
+
+/* ── useVisible hook ─────────────────────────────────────── */
+function useVisible(threshold = 0.12) {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setVisible(true) },
+      { threshold }
+    )
+    if (ref.current) obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [])
+  return [ref, visible]
+}
+
+/* ── Counter ─────────────────────────────────────────────── */
+function Counter({ target, suffix = '' }) {
+  const [count, setCount] = useState(0)
+  const [ref, visible] = useVisible(0.3)
+  useEffect(() => {
+    if (!visible) return
+    let n = 0
+    const step = Math.ceil(target / 50)
+    const t = setInterval(() => {
+      n += step
+      if (n >= target) { setCount(target); clearInterval(t) }
+      else setCount(n)
+    }, 30)
+    return () => clearInterval(t)
+  }, [visible, target])
+  return <span ref={ref}>{count}{suffix}</span>
+}
+
+/* ── DATA ────────────────────────────────────────────────── */
+const REVIEWS = [
+  { name: 'Laura Cellini', tag: 'Cliente da anni', stars: 5,
+    text: 'Consiglio la Parrucchiera Debora perché ha professionalità, competenza, gentilezza e disponibilità. Sono cliente da diversi anni e non mi ha mai delusa!' },
+  { name: 'Gabriella Bartolini', tag: 'Ospite abituale', stars: 5,
+    text: 'Professionalità, bravura, innovazione, scelta dei prodotti per la cura dei capelli, simpatia e disponibilità. Non la cambierei per nulla al mondo ❣️' },
+  { name: 'Veronica Amici', tag: 'Colore & Taglio', stars: 5,
+    text: 'Consiglio vivamente questa parrucchieria per professionalità e velocità. Sono andata a fare schiariture, taglio e messa in piega e dire che sono uscita nuova e bellissima è poco. Ottimi prezzi!!!' },
+  { name: 'Sabrina Del Vecchio', tag: 'Local Guide', stars: 5,
+    text: 'Per il taglio nulla da obiettare: gentilezza, rispettano gli appuntamenti, consigli utili. I prezzi sono davvero buoni.' },
+  { name: 'Paola Marucci', tag: 'Local Guide', stars: 5,
+    text: 'La titolare è molto discreta e professionale. Un ambiente che mette subito a proprio agio.' },
+  { name: 'Ernesto Tacconi', tag: 'La migliore', stars: 5,
+    text: 'La migliore. Hairstyling, colorazione, acconciature: eccellenza in ogni servizio. Consiglio a tutti.' },
+]
+
+const SERVICES = [
+  { icon: Scissors, title: 'Taglio Personalizzato',
+    desc: 'Ogni taglio nasce da un\'analisi attenta del tuo viso, del tuo stile e della texture dei tuoi capelli. Nessun taglio è uguale all\'altro.',
+    price: 'da €25' },
+  { icon: Sparkles, title: 'Colorazione & Schiariture',
+    desc: 'Balayage, shatush, highlights, tinta piena. Colori luminosi e naturali con prodotti di alta qualità che rispettano i tuoi capelli.',
+    price: 'da €50' },
+  { icon: Award, title: 'Trattamenti Ristrutturanti',
+    desc: 'Cheratina, ricostruzione, maschere professionali su misura. Rituali di bellezza per capelli forti, sani e luminosi.',
+    price: 'da €35' },
+  { icon: Heart, title: 'Acconciature & Cerimonie',
+    desc: 'Matrimoni, lauree, eventi speciali. Raccolti, onde, styling d\'occasione realizzati con cura artigianale e attenzione ai dettagli.',
+    price: 'da €45' },
+  { icon: Zap, title: 'Messa in Piega',
+    desc: 'Piega professionale su misura: capelli lisci, mossi o ricci, ogni look è curato con prodotti selezionati per una tenuta perfetta.',
+    price: 'da €18' },
+  { icon: Camera, title: 'Consulenza Gratuita',
+    desc: 'Prima di iniziare, Debora ascolta. Capisce le tue esigenze, studia la tua morfologia e propone la soluzione ideale per te.',
+    price: 'Gratuita' },
+]
+
+// Gallery items — toni capelli realistici con CSS gradient
+const GALLERY_ITEMS = [
+  { label: 'Balayage Dorato', grad: 'linear-gradient(160deg,#3b2314 0%,#8B5E3C 40%,#C9943A 100%)', sub: 'Colorazione' },
+  { label: 'Bob Moderno', grad: 'linear-gradient(160deg,#1a0a00 0%,#4a2c1a 50%,#2d1a0a 100%)', sub: 'Taglio' },
+  { label: 'Onde Soft', grad: 'linear-gradient(160deg,#1c1c1c 0%,#3d2b1a 60%,#6b4226 100%)', sub: 'Piega' },
+  { label: 'Schiariture Naturali', grad: 'linear-gradient(160deg,#5a3e28 0%,#A0784A 45%,#D4A96A 100%)', sub: 'Colore' },
+  { label: 'Raccolto Elegante', grad: 'linear-gradient(160deg,#0d0d0d 0%,#2a1c0e 50%,#1a1209 100%)', sub: 'Cerimonia' },
+  { label: 'Taglio Scalato', grad: 'linear-gradient(160deg,#2c1810 0%,#6b3a22 50%,#3d2010 100%)', sub: 'Taglio' },
+  { label: 'Rosso Ramato', grad: 'linear-gradient(160deg,#4a0e0e 0%,#8B2020 50%,#C41230 100%)', sub: 'Colorazione' },
+  { label: 'Piega Liscia', grad: 'linear-gradient(160deg,#1a1a1a 0%,#3a2a18 50%,#7a5a30 100%)', sub: 'Styling' },
+  { label: 'Mèches & Riflessi', grad: 'linear-gradient(160deg,#3a2a10 0%,#8a6a30 45%,#C4A050 100%)', sub: 'Colore' },
+]
+
+/* ── NAVBAR ──────────────────────────────────────────────── */
+function Navbar() {
+  const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 50)
+    window.addEventListener('scroll', fn)
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+      background: scrolled ? 'rgba(14,14,14,0.97)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(10px)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(196,18,48,0.2)' : 'none',
+      padding: scrolled ? '0.85rem 0' : '1.4rem 0',
+      transition: 'all 0.4s ease',
+    }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 2rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        {/* Logo */}
+        <a href="#home" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <img src="/logo.png" alt="Parrucchieria Debora" style={{ height: scrolled ? 44 : 54, width: 'auto', transition: 'height 0.4s ease' }} />
+        </a>
+
+        {/* Desktop */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2.5rem' }} className="desk-nav">
+          {['Chi Sono', 'Servizi', 'Lavori', 'Recensioni', 'Contatti'].map(l => (
+            <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`} className="nav-link">{l}</a>
+          ))}
+          <a href="#contatti" className="btn-primary" style={{ padding: '0.7rem 1.75rem' }}>
+            <span>Prenota</span>
+          </a>
+        </div>
+
+        {/* Mobile toggle */}
+        <button onClick={() => setOpen(o => !o)} style={{ background: 'none', border: 'none', color: '#F5F0EA', cursor: 'pointer', padding: '0.4rem' }} className="mob-btn">
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
+
+      {/* Mobile menu */}
+      {open && (
+        <div style={{ background: '#0E0E0E', borderTop: '1px solid rgba(196,18,48,0.2)', padding: '1.5rem 2rem 2rem' }}>
+          {['Chi Sono', 'Servizi', 'Lavori', 'Recensioni', 'Contatti', 'Prenota'].map(l => (
+            <a key={l} href={`#${l.toLowerCase().replace(' ', '-')}`}
+              onClick={() => setOpen(false)}
+              style={{
+                display: 'block', padding: '0.85rem 0',
+                borderBottom: '1px solid rgba(255,255,255,0.04)',
+                fontFamily: "'Montserrat', sans-serif", fontSize: '0.72rem',
+                fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase',
+                color: l === 'Prenota' ? '#C41230' : '#F5F0EA', textDecoration: 'none',
+              }}>{l}</a>
+          ))}
+        </div>
+      )}
+
+      <style>{`
+        .desk-nav { display: flex; }
+        .mob-btn { display: none; }
+        @media (max-width: 900px) {
+          .desk-nav { display: none !important; }
+          .mob-btn { display: block !important; }
+        }
+      `}</style>
+    </nav>
+  )
+}
+
+/* ── HERO ────────────────────────────────────────────────── */
+function Hero() {
+  return (
+    <section id="home" style={{
+      minHeight: '100vh', position: 'relative',
+      display: 'flex', alignItems: 'center',
+      background: 'linear-gradient(135deg, #0E0E0E 0%, #1C1C1C 55%, #1a0608 100%)',
+      overflow: 'hidden',
+    }}>
+      {/* Red glow */}
+      <div style={{
+        position: 'absolute', bottom: '-10%', right: '-5%',
+        width: '55vw', height: '55vw', maxWidth: 700,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(196,18,48,0.12) 0%, transparent 68%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'absolute', top: '10%', left: '-8%',
+        width: '40vw', height: '40vw', maxWidth: 500,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(196,18,48,0.06) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Silhouette decorativa destra */}
+      <div style={{
+        position: 'absolute', right: 0, bottom: 0,
+        height: '90%', display: 'flex', alignItems: 'flex-end',
+        opacity: 0.12, pointerEvents: 'none',
+      }}>
+        <img src="/logo.svg" alt="" style={{ height: '100%', width: 'auto', filter: 'invert(1)' }} />
+      </div>
+
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '9rem 2rem 5rem', position: 'relative', zIndex: 2 }}>
+        <div style={{ maxWidth: 680 }}>
+          {/* Tag */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.32em', textTransform: 'uppercase', color: '#C41230' }}>
+              Parrucchieria · Ascoli Piceno
+            </span>
+          </div>
+
+          {/* Headline */}
+          <h1 style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 'clamp(3.2rem, 7.5vw, 6.5rem)',
+            fontWeight: 300, color: '#F5F0EA', lineHeight: 1.05,
+            letterSpacing: '-0.02em', marginBottom: '0.15em',
+          }}>
+            La tua bellezza,
+          </h1>
+          <h1 style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 'clamp(3.2rem, 7.5vw, 6.5rem)',
+            fontWeight: 600, fontStyle: 'italic',
+            color: '#C41230', lineHeight: 1.05,
+            letterSpacing: '-0.02em', marginBottom: '2rem',
+          }}>
+            curata da Debora.
+          </h1>
+
+          <p style={{
+            fontFamily: "'Montserrat', sans-serif",
+            fontSize: '0.95rem', fontWeight: 300,
+            color: 'rgba(245,240,234,0.65)', lineHeight: 1.9,
+            maxWidth: 500, marginBottom: '3rem',
+          }}>
+            Un salone tutto tuo, gestito con passione e dedizione esclusiva.
+            Ad Ascoli Piceno, dove ogni cliente è unica e ogni risultato racconta una storia.
+          </p>
+
+          {/* CTA */}
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <a href="#contatti" className="btn-primary">
+              <span>Prenota il tuo Appuntamento</span>
+            </a>
+            <a href="#lavori" className="btn-outline-light">
+              Guarda i Miei Lavori
+            </a>
+          </div>
+
+          {/* 5 stelle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '3.5rem' }}>
+            <div style={{ display: 'flex', gap: 4 }}>
+              {[...Array(5)].map((_, i) => <Star key={i} size={15} fill="#C41230" color="#C41230" />)}
+            </div>
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.68rem', color: 'rgba(245,240,234,0.4)', letterSpacing: '0.08em' }}>
+              Valutazione 5.0 su Google · Ascoli Piceno
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Scroll */}
+      <div style={{
+        position: 'absolute', bottom: '2.5rem', left: '50%',
+        transform: 'translateX(-50%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.4rem',
+        animation: 'updown 2s ease-in-out infinite',
+      }}>
+        <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.55rem', letterSpacing: '0.28em', color: 'rgba(245,240,234,0.3)', textTransform: 'uppercase' }}>Scorri</span>
+        <ChevronDown size={16} color="rgba(196,18,48,0.7)" />
+      </div>
+
+      <style>{`
+        @keyframes updown {
+          0%,100% { transform: translateX(-50%) translateY(0); }
+          50% { transform: translateX(-50%) translateY(7px); }
+        }
+        .btn-outline-light {
+          display: inline-block;
+          background: transparent;
+          color: #F5F0EA;
+          font-family: 'Montserrat', sans-serif;
+          font-weight: 600;
+          font-size: 0.68rem;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          padding: 0.9rem 2rem;
+          text-decoration: none;
+          border: 1.5px solid rgba(245,240,234,0.35);
+          transition: all 0.3s ease;
+        }
+        .btn-outline-light:hover {
+          border-color: #F5F0EA;
+          background: rgba(245,240,234,0.07);
+          transform: translateY(-2px);
+        }
+      `}</style>
+    </section>
+  )
+}
+
+/* ── STATS ───────────────────────────────────────────────── */
+function Stats() {
+  return (
+    <section style={{
+      background: '#0E0E0E',
+      borderTop: '1px solid rgba(196,18,48,0.15)',
+      borderBottom: '1px solid rgba(196,18,48,0.15)',
+      padding: '3.5rem 2rem',
+    }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '2rem', textAlign: 'center' }}>
+        {[
+          { val: 15, suf: '+', label: 'Anni di Esperienza' },
+          { val: 5, suf: '.0 ★', label: 'Rating Google' },
+          { val: 500, suf: '+', label: 'Clienti Soddisfatte' },
+          { val: 1, suf: '', label: 'Professionista Dedicata' },
+        ].map(s => (
+          <div key={s.label}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '3.2rem', fontWeight: 700, color: '#C41230', lineHeight: 1 }}>
+              <Counter target={s.val} suffix={s.suf} />
+            </div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.62rem', fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.4)', marginTop: '0.4rem' }}>
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+/* ── CHI SONO ────────────────────────────────────────────── */
+function ChiSono() {
+  const [rL, vL] = useVisible()
+  const [rR, vR] = useVisible()
+
+  return (
+    <section id="chi-sono" style={{ padding: '9rem 2rem', background: '#F5F0EA', overflow: 'hidden' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '5rem', alignItems: 'center' }}>
+
+        {/* Visual */}
+        <div ref={rL} style={{
+          opacity: vL ? 1 : 0, transform: vL ? 'translateX(0)' : 'translateX(-40px)',
+          transition: 'all 0.9s ease', position: 'relative',
+        }}>
+          <div style={{
+            background: '#1C1C1C',
+            aspectRatio: '4/5',
+            position: 'relative',
+            overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {/* Logo grande dentro il pannello */}
+            <img src="/logo.png" alt="Parrucchieria Debora" style={{ width: '85%', opacity: 0.9, filter: 'brightness(1.05)' }} />
+            {/* Corner accents */}
+            <div style={{ position: 'absolute', top: '1.2rem', left: '1.2rem', width: 35, height: 35, borderTop: '2px solid #C41230', borderLeft: '2px solid #C41230' }} />
+            <div style={{ position: 'absolute', bottom: '1.2rem', right: '1.2rem', width: 35, height: 35, borderBottom: '2px solid #C41230', borderRight: '2px solid #C41230' }} />
+          </div>
+          {/* Badge */}
+          <div style={{
+            position: 'absolute', bottom: '-1.5rem', right: '-1.5rem',
+            background: '#C41230', width: 120, height: 120,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            textAlign: 'center', padding: '1rem',
+          }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '2.8rem', fontWeight: 700, color: '#F5F0EA', lineHeight: 1 }}>15+</div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.85)', marginTop: '0.2rem' }}>Anni di Eccellenza</div>
+          </div>
+        </div>
+
+        {/* Testo */}
+        <div ref={rR} style={{
+          opacity: vR ? 1 : 0, transform: vR ? 'translateX(0)' : 'translateX(40px)',
+          transition: 'all 0.9s ease 0.15s',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+            <span className="section-tag">Chi Sono</span>
+          </div>
+
+          <h2 style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 'clamp(2.2rem, 4vw, 3.2rem)',
+            fontWeight: 400, color: '#1C1C1C', lineHeight: 1.2, marginBottom: '1.75rem',
+          }}>
+            Un salone, <span style={{ fontStyle: 'italic', color: '#C41230' }}>una sola mano</span>.<br />La mia.
+          </h2>
+
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.88rem', fontWeight: 300, color: '#555', lineHeight: 1.95, marginBottom: '1.25rem' }}>
+            Sono Debora Carboni, e da oltre 15 anni gestisco il mio salone ad Ascoli Piceno con dedizione totale.
+            Lavoro da sola, per scelta: questo mi permette di dedicare a ogni cliente il tempo, l'attenzione e la cura
+            che merita — senza fretta, senza compromessi.
+          </p>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.88rem', fontWeight: 300, color: '#555', lineHeight: 1.95, marginBottom: '2.5rem' }}>
+            Ogni volta che entri, sai che sei in buone mani. Ascolto, consiglio, realizzo.
+            Non sei solo una cliente: sei la protagonista di ogni creazione che esce dal mio salone.
+          </p>
+
+          {/* Valori */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '2.5rem' }}>
+            {[
+              [Award, 'Professionalità'],
+              [Heart, 'Cura Personalizzata'],
+              [Sparkles, 'Innovazione'],
+              [Zap, 'Puntualità'],
+            ].map(([Icon, label]) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: 34, height: 34, background: 'rgba(196,18,48,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={15} color="#C41230" />
+                </div>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.76rem', fontWeight: 500, color: '#1C1C1C' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <a href="#contatti" className="btn-primary"><span>Prenota con Debora</span></a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── SERVIZI ─────────────────────────────────────────────── */
+function Servizi() {
+  return (
+    <section id="servizi" style={{ padding: '9rem 2rem', background: '#0E0E0E' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+            <span className="section-tag" style={{ color: '#C41230' }}>Cosa Faccio</span>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+          </div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)', fontWeight: 400, color: '#F5F0EA', lineHeight: 1.2 }}>
+            Servizi su Misura,<br /><span style={{ fontStyle: 'italic', color: '#C41230' }}>per ogni capello</span>
+          </h2>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '1px', background: 'rgba(196,18,48,0.1)' }}>
+          {SERVICES.map((s, i) => <ServiceCard key={s.title} service={s} index={i} />)}
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '4rem' }}>
+          <a href="#contatti" className="btn-primary"><span>Prenota il tuo Servizio</span></a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ServiceCard({ service, index }) {
+  const [ref, visible] = useVisible(0.1)
+  const [hov, setHov] = useState(false)
+  const Icon = service.icon
+  return (
+    <div ref={ref}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        padding: '2.75rem 2.25rem', background: hov ? '#1a0608' : '#161616',
+        position: 'relative', overflow: 'hidden', cursor: 'default',
+        opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(35px)',
+        transition: `opacity 0.6s ease ${index * 0.08}s, transform 0.6s ease ${index * 0.08}s, background 0.3s ease`,
+      }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: hov ? '#C41230' : 'transparent', transition: 'background 0.3s ease' }} />
+      <div style={{ width: 46, height: 46, background: hov ? 'rgba(196,18,48,0.15)' : 'rgba(196,18,48,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem', transition: 'background 0.3s ease' }}>
+        <Icon size={20} color="#C41230" />
+      </div>
+      <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.5rem', fontWeight: 500, color: '#F5F0EA', marginBottom: '0.85rem' }}>{service.title}</h3>
+      <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.8rem', fontWeight: 300, color: 'rgba(245,240,234,0.5)', lineHeight: 1.85, marginBottom: '1.5rem' }}>{service.desc}</p>
+      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.25rem', fontWeight: 600, fontStyle: 'italic', color: '#C41230' }}>{service.price}</div>
+    </div>
+  )
+}
+
+/* ── GALLERY / I MIEI LAVORI ─────────────────────────────── */
+function Lavori() {
+  const [ref, visible] = useVisible(0.05)
+  return (
+    <section id="lavori" style={{ padding: '9rem 2rem', background: '#F5F0EA' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+            <span className="section-tag">I Miei Lavori</span>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+          </div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)', fontWeight: 400, color: '#1C1C1C', lineHeight: 1.2 }}>
+            I risultati parlano<br /><span style={{ fontStyle: 'italic', color: '#C41230' }}>da soli</span>
+          </h2>
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.85rem', fontWeight: 300, color: '#777', maxWidth: 520, margin: '1.5rem auto 0', lineHeight: 1.85 }}>
+            Ogni cliente che esce dal mio salone è la mia migliore pubblicità.
+            Taglio, colore, trattamenti: la cura dei dettagli è la mia firma.
+          </p>
+        </div>
+
+        <div ref={ref} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem' }}>
+          {GALLERY_ITEMS.map((item, i) => (
+            <GalleryItem key={item.label} item={item} index={i} visible={visible} />
+          ))}
+        </div>
+
+        {/* CTA foto reali */}
+        <div style={{
+          marginTop: '3rem', background: '#1C1C1C', padding: '2.5rem',
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem',
+        }}>
+          <div>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.4rem', color: '#F5F0EA', fontStyle: 'italic' }}>Segui i miei lavori su Instagram</div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.7rem', color: 'rgba(245,240,234,0.4)', marginTop: '0.3rem', letterSpacing: '0.05em' }}>Nuovi lavori pubblicati ogni settimana</div>
+          </div>
+          <a href="https://instagram.com" target="_blank" rel="noreferrer" className="btn-primary">
+            <span>Vai su Instagram →</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function GalleryItem({ item, index, visible }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        aspectRatio: '3/4', position: 'relative', overflow: 'hidden',
+        background: item.grad, cursor: 'pointer',
+        opacity: visible ? 1 : 0, transform: visible ? 'scale(1)' : 'scale(0.95)',
+        transition: `opacity 0.7s ease ${index * 0.06}s, transform 0.7s ease ${index * 0.06}s`,
+      }}>
+      {/* Texture overlay */}
+      <div style={{ position: 'absolute', inset: 0, background: 'url("data:image/svg+xml,%3Csvg width=\'4\' height=\'4\' viewBox=\'0 0 4 4\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M1 3h1v1H1V3zm2-2h1v1H3V1z\' fill=\'%23000\' fill-opacity=\'0.08\'/%3E%3C/svg%3E")', opacity: 0.6 }} />
+      {/* Shine streak */}
+      <div style={{
+        position: 'absolute', top: '10%', left: '-30%', width: '20%', height: '120%',
+        background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 60%)',
+        transform: hov ? 'translateX(350%)' : 'translateX(0)',
+        transition: 'transform 0.8s ease',
+      }} />
+      {/* Hover overlay */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to top, rgba(196,18,48,0.82) 0%, rgba(14,14,14,0.2) 55%, transparent 100%)',
+        opacity: hov ? 1 : 0, transition: 'opacity 0.4s ease',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end',
+        padding: '1.5rem',
+      }}>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.2rem', fontWeight: 600, color: '#F5F0EA', textAlign: 'center' }}>{item.label}</div>
+        <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.75)', marginTop: '0.3rem' }}>{item.sub}</div>
+      </div>
+      {/* Label sempre visibile in basso */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        background: 'linear-gradient(to top, rgba(14,14,14,0.7) 0%, transparent 100%)',
+        padding: '2.5rem 1rem 0.75rem',
+        opacity: hov ? 0 : 1, transition: 'opacity 0.3s ease',
+      }}>
+        <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.58rem', fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.7)' }}>{item.sub}</div>
+      </div>
+    </div>
+  )
+}
+
+/* ── RECENSIONI ──────────────────────────────────────────── */
+function Recensioni() {
+  const [active, setActive] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setActive(a => (a + 1) % REVIEWS.length), 5000)
+    return () => clearInterval(t)
+  }, [])
+
+  return (
+    <section id="recensioni" style={{ padding: '9rem 2rem', background: '#1C1C1C' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+            <span className="section-tag" style={{ color: '#C41230' }}>Testimonianze</span>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+          </div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)', fontWeight: 400, color: '#F5F0EA' }}>
+            Quello che dicono<br /><span style={{ fontStyle: 'italic', color: '#C41230' }}>le mie clienti</span>
+          </h2>
+        </div>
+
+        {/* Featured */}
+        <div style={{ maxWidth: 820, margin: '0 auto 4rem', background: '#141414', padding: '4rem', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: '#C41230' }} />
+          <Quote size={60} color="rgba(196,18,48,0.1)" style={{ position: 'absolute', top: '2rem', left: '2rem' }} />
+
+          <div style={{ display: 'flex', gap: 4, marginBottom: '2rem' }}>
+            {[...Array(5)].map((_, i) => <Star key={i} size={17} fill="#C41230" color="#C41230" />)}
+          </div>
+
+          <div style={{ minHeight: 110, position: 'relative' }}>
+            {REVIEWS.map((r, i) => (
+              <p key={r.name} style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: 'clamp(1.2rem, 2.2vw, 1.55rem)',
+                fontStyle: 'italic', fontWeight: 400,
+                color: '#F5F0EA', lineHeight: 1.7,
+                position: i === 0 ? 'relative' : 'absolute',
+                top: 0, left: 0, right: 0,
+                opacity: active === i ? 1 : 0,
+                transform: active === i ? 'translateY(0)' : 'translateY(12px)',
+                transition: 'all 0.7s ease', pointerEvents: 'none',
+              }}>
+                "{r.text}"
+              </p>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginTop: '2rem' }}>
+            <div style={{ width: 38, height: 38, background: '#C41230', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.1rem', fontWeight: 700, color: '#F5F0EA' }}>{REVIEWS[active].name[0]}</span>
+            </div>
+            <div>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.78rem', fontWeight: 600, color: '#F5F0EA' }}>{REVIEWS[active].name}</div>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', color: '#C41230', letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 2 }}>{REVIEWS[active].tag}</div>
+            </div>
+          </div>
+
+          {/* Dots */}
+          <div style={{ display: 'flex', gap: 8, marginTop: '2rem' }}>
+            {REVIEWS.map((_, i) => (
+              <button key={i} onClick={() => setActive(i)} style={{
+                height: 8, width: active === i ? 24 : 8,
+                background: active === i ? '#C41230' : 'rgba(196,18,48,0.2)',
+                border: 'none', cursor: 'pointer', padding: 0,
+                transition: 'all 0.4s ease',
+              }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Mini cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '1.25rem' }}>
+          {REVIEWS.slice(0, 3).map((r, i) => <MiniReview key={r.name} r={r} i={i} />)}
+        </div>
+
+        {/* Google badge */}
+        <div style={{ textAlign: 'center', marginTop: '3.5rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', background: '#0E0E0E', padding: '0.85rem 1.75rem', border: '1px solid rgba(196,18,48,0.2)' }}>
+            <div style={{ display: 'flex', gap: 3 }}>{[...Array(5)].map((_, i) => <Star key={i} size={13} fill="#C41230" color="#C41230" />)}</div>
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.65rem', color: 'rgba(245,240,234,0.5)', letterSpacing: '0.1em' }}>5.0 su Google · Ascoli Piceno</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function MiniReview({ r, i }) {
+  const [ref, visible] = useVisible(0.1)
+  return (
+    <div ref={ref} style={{
+      padding: '1.75rem', background: '#141414', borderLeft: '3px solid #C41230',
+      opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(25px)',
+      transition: `all 0.6s ease ${i * 0.12}s`,
+    }}>
+      <div style={{ display: 'flex', gap: 3, marginBottom: '0.85rem' }}>
+        {[...Array(5)].map((_, j) => <Star key={j} size={11} fill="#C41230" color="#C41230" />)}
+      </div>
+      <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1rem', fontStyle: 'italic', color: 'rgba(245,240,234,0.8)', lineHeight: 1.7, marginBottom: '1rem' }}>
+        "{r.text.slice(0, 110)}{r.text.length > 110 ? '…' : ''}"
+      </p>
+      <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.68rem', fontWeight: 600, color: '#C41230' }}>— {r.name}</div>
+    </div>
+  )
+}
+
+/* ── CTA BANNER ──────────────────────────────────────────── */
+function CTABanner() {
+  return (
+    <section style={{
+      padding: '8rem 2rem', textAlign: 'center',
+      background: 'linear-gradient(135deg, #0E0E0E 0%, #1a0608 50%, #0E0E0E 100%)',
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(196,18,48,0.12) 0%, transparent 65%)', pointerEvents: 'none' }} />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
+          {[...Array(5)].map((_, i) => <Star key={i} size={14} fill="#C41230" color="#C41230" />)}
+        </div>
+        <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.4rem, 5vw, 4rem)', fontWeight: 300, color: '#F5F0EA', lineHeight: 1.2, marginBottom: '1.25rem' }}>
+          Pronta per un nuovo<br /><span style={{ fontStyle: 'italic', color: '#C41230' }}>look?</span>
+        </h2>
+        <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.88rem', fontWeight: 300, color: 'rgba(245,240,234,0.55)', maxWidth: 480, margin: '0 auto 3rem', lineHeight: 1.85 }}>
+          Contattami per fissare il tuo appuntamento. Rispondo personalmente a ogni richiesta, perché ogni cliente merita la mia attenzione.
+        </p>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <a href="#contatti" className="btn-primary"><span>Prenota Adesso</span></a>
+          <a href="tel:+390736000000" className="btn-outline-light">Chiamami</a>
+        </div>
+      </div>
+
+      <style>{`
+        .btn-outline-light {
+          display: inline-block; background: transparent; color: #F5F0EA;
+          font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.68rem;
+          letter-spacing: 0.2em; text-transform: uppercase; padding: 0.9rem 2rem;
+          text-decoration: none; border: 1.5px solid rgba(245,240,234,0.35);
+          transition: all 0.3s ease;
+        }
+        .btn-outline-light:hover { border-color: #F5F0EA; background: rgba(245,240,234,0.07); transform: translateY(-2px); }
+      `}</style>
+    </section>
+  )
+}
+
+/* ── CONTATTI ────────────────────────────────────────────── */
+function Contatti() {
+  const [form, setForm] = useState({ nome: '', telefono: '', servizio: '', messaggio: '' })
+  const [sent, setSent] = useState(false)
+
+  return (
+    <section id="contatti" style={{ padding: '9rem 2rem', background: '#F5F0EA' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+            <span className="section-tag">Contatti</span>
+            <div style={{ width: 36, height: 2, background: '#C41230' }} />
+          </div>
+          <h2 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(2.2rem, 4.5vw, 3.5rem)', fontWeight: 400, color: '#1C1C1C' }}>
+            Prenota il tuo<br /><span style={{ fontStyle: 'italic', color: '#C41230' }}>Appuntamento</span>
+          </h2>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '5rem', alignItems: 'start' }}>
+
+          {/* Info */}
+          <div>
+            <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.7rem', color: '#1C1C1C', marginBottom: '2.25rem' }}>Dove trovarmi</h3>
+            {[
+              { icon: MapPin, label: 'Indirizzo', val: 'Ascoli Piceno (AP)\nMarche, Italia' },
+              { icon: Phone, label: 'Telefono', val: '+39 0736 000000' },
+              { icon: Clock, label: 'Orari', val: 'Lun–Ven: 9:00 – 18:30\nSabato: 9:00 – 17:00\nDomenica: chiuso' },
+            ].map(({ icon: Icon, label, val }) => (
+              <div key={label} style={{ display: 'flex', gap: '1.1rem', marginBottom: '1.75rem' }}>
+                <div style={{ width: 44, height: 44, background: 'rgba(196,18,48,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon size={17} color="#C41230" />
+                </div>
+                <div>
+                  <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C41230', marginBottom: '0.2rem' }}>{label}</div>
+                  <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.82rem', fontWeight: 300, color: '#444', lineHeight: 1.7, whiteSpace: 'pre-line' }}>{val}</div>
+                </div>
+              </div>
+            ))}
+
+            {/* Nota personale */}
+            <div style={{ background: '#1C1C1C', padding: '1.75rem', marginTop: '1.5rem', borderLeft: '3px solid #C41230' }}>
+              <p style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.05rem', fontStyle: 'italic', color: 'rgba(245,240,234,0.8)', lineHeight: 1.7 }}>
+                "Rispondo personalmente ad ogni messaggio. Scrivimi per qualsiasi dubbio o per fissare il tuo appuntamento."
+              </p>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.65rem', fontWeight: 600, color: '#C41230', marginTop: '0.75rem', letterSpacing: '0.1em' }}>— Debora</div>
+            </div>
+          </div>
+
+          {/* Form */}
+          <div>
+            {sent ? (
+              <div style={{ background: '#1C1C1C', padding: '4rem', textAlign: 'center' }}>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '3.5rem', color: '#C41230', marginBottom: '1rem' }}>✓</div>
+                <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.8rem', color: '#F5F0EA', marginBottom: '1rem' }}>Richiesta inviata!</h3>
+                <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.82rem', fontWeight: 300, color: 'rgba(245,240,234,0.55)', lineHeight: 1.75 }}>
+                  Debora ti contatterà presto per confermare il tuo appuntamento. A presto! ❤
+                </p>
+              </div>
+            ) : (
+              <form onSubmit={e => { e.preventDefault(); setSent(true) }} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                {[
+                  { name: 'nome', label: 'Nome e Cognome', type: 'text', ph: 'Il tuo nome...' },
+                  { name: 'telefono', label: 'Telefono / WhatsApp', type: 'tel', ph: '+39...' },
+                ].map(f => (
+                  <div key={f.name}>
+                    <label style={{ display: 'block', fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C41230', marginBottom: '0.45rem' }}>{f.label}</label>
+                    <input type={f.type} placeholder={f.ph} required value={form[f.name]}
+                      onChange={e => setForm(p => ({ ...p, [f.name]: e.target.value }))}
+                      style={{ width: '100%', padding: '0.85rem 1rem', background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderBottom: '2px solid #C41230', fontFamily: "'Montserrat', sans-serif", fontSize: '0.84rem', color: '#1C1C1C', outline: 'none' }}
+                    />
+                  </div>
+                ))}
+
+                <div>
+                  <label style={{ display: 'block', fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C41230', marginBottom: '0.45rem' }}>Servizio</label>
+                  <select value={form.servizio} onChange={e => setForm(p => ({ ...p, servizio: e.target.value }))}
+                    style={{ width: '100%', padding: '0.85rem 1rem', background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderBottom: '2px solid #C41230', fontFamily: "'Montserrat', sans-serif", fontSize: '0.84rem', color: form.servizio ? '#1C1C1C' : '#999', outline: 'none', cursor: 'pointer', appearance: 'none' }}>
+                    <option value="">Seleziona un servizio...</option>
+                    {SERVICES.map(s => <option key={s.title} value={s.title}>{s.title}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#C41230', marginBottom: '0.45rem' }}>Messaggio (opzionale)</label>
+                  <textarea rows={4} placeholder="Scrivi qui le tue preferenze o domande..." value={form.messaggio}
+                    onChange={e => setForm(p => ({ ...p, messaggio: e.target.value }))}
+                    style={{ width: '100%', padding: '0.85rem 1rem', background: 'white', border: '1px solid rgba(0,0,0,0.08)', borderBottom: '2px solid #C41230', fontFamily: "'Montserrat', sans-serif", fontSize: '0.84rem', color: '#1C1C1C', outline: 'none', resize: 'vertical' }}
+                  />
+                </div>
+
+                <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem', cursor: 'pointer' }}>
+                  <span>Invia la Richiesta</span>
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+function Footer() {
+  return (
+    <footer style={{ background: '#0E0E0E', borderTop: '1px solid rgba(196,18,48,0.15)', padding: '4rem 2rem 2rem' }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '3rem', marginBottom: '3.5rem' }}>
+          {/* Brand */}
+          <div>
+            <img src="/logo.png" alt="Parrucchieria Debora" style={{ height: 70, marginBottom: '1.25rem' }} />
+            <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.75rem', fontWeight: 300, color: 'rgba(245,240,234,0.35)', lineHeight: 1.8 }}>
+              Salone di parrucchieria a gestione personale ad Ascoli Piceno. Professionalità, cura e passione per i capelli.
+            </p>
+          </div>
+
+          {/* Servizi */}
+          <div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C41230', marginBottom: '1.25rem' }}>Servizi</div>
+            {SERVICES.map(s => (
+              <div key={s.title} style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.75rem', fontWeight: 300, color: 'rgba(245,240,234,0.35)', marginBottom: '0.5rem' }}>{s.title}</div>
+            ))}
+          </div>
+
+          {/* Orari */}
+          <div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C41230', marginBottom: '1.25rem' }}>Orari di Apertura</div>
+            {[['Lun – Ven', '9:00 – 18:30'], ['Sabato', '9:00 – 17:00'], ['Domenica', 'Chiuso']].map(([g, o]) => (
+              <div key={g} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.55rem' }}>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.73rem', fontWeight: 300, color: 'rgba(245,240,234,0.3)' }}>{g}</span>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.73rem', fontWeight: 400, color: 'rgba(245,240,234,0.6)' }}>{o}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Contatto rapido */}
+          <div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.6rem', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: '#C41230', marginBottom: '1.25rem' }}>Contatti</div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.75rem', fontWeight: 300, color: 'rgba(245,240,234,0.35)', marginBottom: '0.6rem' }}>Ascoli Piceno (AP)</div>
+            <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.75rem', fontWeight: 300, color: 'rgba(245,240,234,0.35)', marginBottom: '1.5rem' }}>+39 0736 000000</div>
+            <a href="#contatti" className="btn-primary" style={{ fontSize: '0.6rem', padding: '0.65rem 1.25rem' }}><span>Prenota</span></a>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.62rem', color: 'rgba(245,240,234,0.18)' }}>
+            © {new Date().getFullYear()} Parrucchieria Debora di Carboni Debora · P.IVA da inserire · Ascoli Piceno
+          </span>
+          <div style={{ display: 'flex', gap: '2rem' }}>
+            {['Privacy Policy', 'Cookie Policy'].map(l => (
+              <a key={l} href="#" style={{ fontFamily: "'Montserrat', sans-serif", fontSize: '0.62rem', color: 'rgba(245,240,234,0.18)', textDecoration: 'none', transition: 'color 0.3s' }}
+                onMouseEnter={e => e.target.style.color = '#C41230'}
+                onMouseLeave={e => e.target.style.color = 'rgba(245,240,234,0.18)'}
+              >{l}</a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
+}
+
+/* ── APP ─────────────────────────────────────────────────── */
+export default function App() {
+  return (
+    <>
+      <Navbar />
+      <Hero />
+      <Stats />
+      <ChiSono />
+      <Servizi />
+      <Lavori />
+      <Recensioni />
+      <CTABanner />
+      <Contatti />
+      <Footer />
+    </>
+  )
+}
