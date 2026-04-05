@@ -148,11 +148,18 @@ function GalleryTab() {
     try {
       const uploaded = await uploadToCloudinary(file)
       if (item.isDefault) {
-        await addDoc(collection(db, 'gallery'), {
-          label: item.label, sub: item.sub,
-          url: uploaded.url, publicId: uploaded.publicId, type: uploaded.type,
-          createdAt: new Date().toISOString(),
-        })
+        // Scrivi TUTTE le foto default in Firestore, con questa sostituita
+        const existing = await getDocs(collection(db, 'gallery'))
+        const batch = writeBatch(db)
+        existing.docs.forEach(d => batch.delete(d.ref))
+        for (const g of DEFAULT_GALLERY) {
+          const isReplaced = g.label === item.label
+          batch.set(doc(collection(db, 'gallery')), isReplaced
+            ? { label: g.label, sub: g.sub, url: uploaded.url, publicId: uploaded.publicId, type: uploaded.type, createdAt: new Date().toISOString() }
+            : { label: g.label, sub: g.sub, url: g.img, publicId: '', type: 'image', createdAt: new Date().toISOString() }
+          )
+        }
+        await batch.commit()
       } else {
         await updateDoc(doc(db, 'gallery', item.id), {
           url: uploaded.url, publicId: uploaded.publicId, type: uploaded.type,
