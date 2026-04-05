@@ -137,12 +137,18 @@ function GalleryTab() {
   }
 
   // Merge: ogni default + override Firestore (ID = label)
-  const displayItems = DEFAULT_GALLERY.map(g => {
+  const defaultLabels = new Set(DEFAULT_GALLERY.map(g => g.label))
+  const mergedDefaults = DEFAULT_GALLERY.map(g => {
     const ov = overrides?.[g.label]
     return ov
       ? { ...g, url: ov.url, sub: ov.sub || g.sub, type: ov.type || 'image', hasOverride: true }
       : { ...g, url: g.img, type: 'image', hasOverride: false }
   })
+  // Elementi extra aggiunti dall'admin (non presenti nei default)
+  const extraItems = Object.entries(overrides || {})
+    .filter(([id]) => !defaultLabels.has(id))
+    .map(([id, data]) => ({ label: id, sub: data.sub, url: data.url, type: data.type || 'image', hasOverride: true, isExtra: true }))
+  const displayItems = [...mergedDefaults, ...extraItems]
 
   /* Sostituisci file */
   const handleReplace = async (item, file) => {
@@ -242,7 +248,13 @@ function GalleryTab() {
                     <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.4)' }}>Default</span>
                   </div>
                 )}
-                {item.hasOverride && (
+                {item.isExtra && (
+                  <button onClick={() => handleReset(item.label)} title="Elimina"
+                    style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(196,18,48,0.85)', border: 'none', color: '#fff', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <Trash2 size={12} />
+                  </button>
+                )}
+                {item.hasOverride && !item.isExtra && (
                   <button onClick={() => handleReset(item.label)} title="Ripristina default"
                     style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', background: 'rgba(0,0,0,0.7)', border: 'none', color: 'rgba(245,240,234,0.6)', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '0.6rem' }}>
                     ↩
@@ -300,12 +312,16 @@ function PrezziTab() {
   }
 
   // Merge: ogni default + override Firestore (ID = name)
-  const displayItems = DEFAULT_SERVICES.map(s => {
+  const defaultNames = new Set(DEFAULT_SERVICES.map(s => s.name))
+  const mergedDefaults = DEFAULT_SERVICES.map(s => {
     const ov = overrides?.[s.name]
-    return ov
-      ? { ...s, ...ov, hasOverride: true }
-      : { ...s, hasOverride: false }
+    return ov ? { ...s, ...ov, hasOverride: true } : { ...s, hasOverride: false }
   })
+  // Elementi extra aggiunti dall'admin (non presenti nei default)
+  const extraServices = Object.entries(overrides || {})
+    .filter(([id]) => !defaultNames.has(id))
+    .map(([, data]) => ({ ...data, hasOverride: true, isExtra: true }))
+  const displayItems = [...mergedDefaults, ...extraServices]
 
   /* Salva modifica — upsert con doc ID = name */
   const handleSaveEdit = async (data) => {
@@ -387,7 +403,10 @@ function PrezziTab() {
                 </div>
                 <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
                   <button onClick={() => setEditing(item.name)} style={btnSecondary}><Pencil size={12} /></button>
-                  {item.hasOverride && (
+                  {item.isExtra && (
+                    <button onClick={() => handleReset(item.name)} title="Elimina" style={{ ...btnSecondary, borderColor: 'rgba(196,18,48,0.3)', color: '#C41230', padding: '0.6rem 0.6rem' }}><Trash2 size={12} /></button>
+                  )}
+                  {item.hasOverride && !item.isExtra && (
                     <button onClick={() => handleReset(item.name)} title="Ripristina default" style={{ ...btnSecondary, padding: '0.6rem 0.6rem' }}>↩</button>
                   )}
                 </div>
