@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { signOut } from 'firebase/auth'
 import { auth, db } from '../firebase'
 import {
-  collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc
+  collection, getDocs, addDoc, updateDoc, deleteDoc, doc, setDoc, writeBatch
 } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom'
 import { LogOut, Image, Tag, Info, Trash2, Plus, Upload, Check, X, Pencil } from 'lucide-react'
@@ -388,12 +388,23 @@ function PrezziTab() {
     ? DEFAULT_SERVICES.map(s => ({ ...s, isDefault: true, key: s.name }))
     : (firestoreItems || []).map(s => ({ ...s, isDefault: false, key: s.id }))
 
-  /* Salva modifica (crea nuovo doc se default, aggiorna se Firestore) */
+  /* Salva modifica */
   const handleSaveEdit = async (data) => {
     setSaving(true)
     try {
       if (data.isDefault) {
-        await addDoc(collection(db, 'prezzi'), { cat: data.cat, name: data.name, desc: data.desc, price: data.price })
+        // Elimina doc orfani esistenti e riscrivi tutti i default con la modifica
+        const existing = await getDocs(collection(db, 'prezzi'))
+        const batch = writeBatch(db)
+        existing.docs.forEach(d => batch.delete(d.ref))
+        for (const s of DEFAULT_SERVICES) {
+          const isEdited = s.name === data.name
+          batch.set(doc(collection(db, 'prezzi')), isEdited
+            ? { cat: data.cat, name: data.name, desc: data.desc, price: data.price }
+            : { cat: s.cat, name: s.name, desc: s.desc, price: s.price }
+          )
+        }
+        await batch.commit()
       } else {
         await updateDoc(doc(db, 'prezzi', data.id), { cat: data.cat, name: data.name, desc: data.desc, price: data.price })
       }
