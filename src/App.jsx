@@ -464,8 +464,10 @@ function Services() {
     }).catch(() => {})
   }, [])
 
-  // Merge: per ogni servizio hardcoded, applica l'override Firestore se esiste (ID = name)
-  const serviceList = services.map(s => ({ ...s, ...(overrides[s.name] || {}) }))
+  const defaultNames = new Set(services.map(s => s.name))
+  const merged = services.map(s => ({ ...s, ...(overrides[s.name] || {}) }))
+  const extras = Object.entries(overrides).filter(([id]) => !defaultNames.has(id)).map(([, d]) => d)
+  const serviceList = [...merged, ...extras]
   const filtered = active === 'Tutti' ? serviceList : serviceList.filter(s => s.cat === active)
   return (
     <section id="servizi" style={{ padding:'9rem 2rem',background:'#111',overflow:'hidden' }}>
@@ -539,11 +541,15 @@ function Gallery() {
     }).catch(() => {})
   }, [])
 
-  // Merge: per ogni foto hardcoded, applica l'override Firestore se esiste (ID = label)
-  const items = galleryItems.map(g => {
+  const defaultLabels = new Set(galleryItems.map(g => g.label))
+  const merged = galleryItems.map(g => {
     const ov = overrides[g.label]
     return ov ? { ...g, img: ov.url, sub: ov.sub || g.sub } : g
   })
+  const extras = Object.entries(overrides).filter(([id]) => !defaultLabels.has(id)).map(([, d]) => ({
+    label: d.label, sub: d.sub, img: d.url, gradient: 'linear-gradient(160deg,#1a0800 0%,#3d1a0a 50%,#6b3316 100%)'
+  }))
+  const items = [...merged, ...extras]
 
   return (
     <section id="i-miei-lavori" style={{ padding:'9rem 2rem',background:'#F5F0EA',position:'relative' }}>
