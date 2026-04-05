@@ -11,6 +11,27 @@ const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 const BASE = import.meta.env.BASE_URL
 
+const DEFAULT_SERVICES = [
+  { cat:'Taglio',      name:'Taglio donna',           desc:'Taglio su misura con consulenza personalizzata. Shampoo e asciugatura inclusi.',           price:'da €25' },
+  { cat:'Taglio',      name:'Taglio + piega',          desc:'Taglio personalizzato con shampoo e messa in piega.',                                      price:'da €38' },
+  { cat:'Taglio',      name:'Frangia',                 desc:'Ripassata e rifinizione frangia.',                                                          price:'da €10' },
+  { cat:'Piega',       name:'Piega classica',          desc:'Shampoo e messa in piega con phon e spazzola.',                                            price:'da €15' },
+  { cat:'Piega',       name:'Piega sposa / cerimonia', desc:'Piega elaborata per matrimoni, cerimonie e grandi occasioni.',                             price:'da €60' },
+  { cat:'Piega',       name:'Raccolto',                desc:'Acconciatura raccolta elegante su misura.',                                                 price:'da €40' },
+  { cat:'Colore',      name:'Colorazione monocolore',  desc:'Colorazione permanente uniforme su tutta la lunghezza.',                                   price:'da €40' },
+  { cat:'Colore',      name:'Radici',                  desc:'Ritocco radici con colorazione permanente.',                                               price:'da €30' },
+  { cat:'Colore',      name:'Meches classiche',        desc:'Schiariture classiche con stagnola per riflessi naturali.',                                price:'da €50' },
+  { cat:'Colore',      name:'Balayage / Schiariture',  desc:'Schiariture a mano libera per un effetto naturale, solare e pieno di luce.',              price:'da €75' },
+  { cat:'Colore',      name:'Correzione colore',       desc:'Correzione e rifacimento completo del colore.',                                            price:'da €90' },
+  { cat:'Trattamenti', name:'Trattamento Olaplex',     desc:'Trattamento ristrutturante Olaplex per capelli danneggiati da colore o calore.',           price:'da €30' },
+  { cat:'Trattamenti', name:'Cheratina lisciante',     desc:'Lisciatura duratura con cheratina, effetto anti-crespo fino a 3 mesi.',                   price:'da €85' },
+  { cat:'Trattamenti', name:'Trattamento rigenerante', desc:'Maschera intensiva rigenerante per capelli secchi, fragili o danneggiati.',               price:'da €22' },
+  { cat:'Trattamenti', name:'Permanente',              desc:'Permanente classica o ricci morbidi con consulenza inclusa.',                             price:'da €50' },
+  { cat:'Sposa',       name:'Acconciatura sposa',      desc:'Acconciatura nuziale con consulenza personalizzata e prova inclusa.',                     price:'da €120' },
+  { cat:'Sposa',       name:'Prova acconciatura',      desc:'Sessione di prova per acconciatura sposa o cerimonia.',                                   price:'da €50' },
+  { cat:'Sposa',       name:'Acconciatura cerimonia',  desc:'Acconciatura elaborata per cerimonie, feste e eventi speciali.',                          price:'da €55' },
+]
+
 const DEFAULT_GALLERY = [
   { label: 'Balayage Naturale',      sub: 'Colore',      img: `${BASE}lavori/Balayage Naturale.jpg`,      type: 'image' },
   { label: 'Bob Liscio',             sub: 'Taglio',      img: `${BASE}lavori/Bob Liscio.jpg`,             type: 'image' },
@@ -344,10 +365,10 @@ function GalleryTab() {
 
 /* ─── PREZZI TAB ────────────────────────────────── */
 function PrezziTab() {
-  const [items, setItems] = useState(null)
-  const [editing, setEditing] = useState(null)
+  const [firestoreItems, setFirestoreItems] = useState(null)
+  const [editing, setEditing] = useState(null) // key dell'item in modifica
+  const [showAddForm, setShowAddForm] = useState(false)
   const [newItem, setNewItem] = useState({ cat: '', name: '', desc: '', price: '' })
-  const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => { loadPrezzi() }, [])
@@ -355,56 +376,74 @@ function PrezziTab() {
   const loadPrezzi = async () => {
     try {
       const snap = await getDocs(collection(db, 'prezzi'))
-      setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      setFirestoreItems(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     } catch (err) {
       console.error('Firestore:', err)
-      setItems([])
+      setFirestoreItems([])
     }
   }
 
-  const handleSaveEdit = async (item) => {
+  const usingDefaults = firestoreItems !== null && firestoreItems.length === 0
+  const displayItems = usingDefaults
+    ? DEFAULT_SERVICES.map(s => ({ ...s, isDefault: true, key: s.name }))
+    : (firestoreItems || []).map(s => ({ ...s, isDefault: false, key: s.id }))
+
+  /* Salva modifica (crea nuovo doc se default, aggiorna se Firestore) */
+  const handleSaveEdit = async (data) => {
     setSaving(true)
-    await updateDoc(doc(db, 'prezzi', item.id), { cat: item.cat, name: item.name, desc: item.desc, price: item.price })
-    setEditing(null)
-    setSaving(false)
-    loadPrezzi()
+    try {
+      if (data.isDefault) {
+        await addDoc(collection(db, 'prezzi'), { cat: data.cat, name: data.name, desc: data.desc, price: data.price })
+      } else {
+        await updateDoc(doc(db, 'prezzi', data.id), { cat: data.cat, name: data.name, desc: data.desc, price: data.price })
+      }
+      setEditing(null)
+      loadPrezzi()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setSaving(false)
+    }
   }
 
+  /* Aggiungi nuovo */
   const handleAdd = async (e) => {
     e.preventDefault()
     setSaving(true)
     await addDoc(collection(db, 'prezzi'), { ...newItem })
     setNewItem({ cat: '', name: '', desc: '', price: '' })
-    setShowForm(false)
+    setShowAddForm(false)
     setSaving(false)
     loadPrezzi()
   }
 
+  /* Elimina */
   const handleDelete = async (id) => {
     if (!confirm('Eliminare questo servizio?')) return
     await deleteDoc(doc(db, 'prezzi', id))
     loadPrezzi()
   }
 
-  if (items === null) return <Spinner />
+  if (firestoreItems === null) return <Spinner />
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ ...sectionTitle, marginBottom: '0.25rem' }}>Prezzi & Servizi</h2>
-          {items.length === 0 && (
+          {usingDefaults && (
             <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.7rem', color: 'rgba(245,240,234,0.35)', margin: 0 }}>
-              Nessun servizio in Firestore — aggiungi i tuoi per sovrascrivere quelli predefiniti del sito.
+              Servizi predefiniti del sito — clicca "Modifica" per cambiare un servizio e salvarlo.
             </p>
           )}
         </div>
-        <button onClick={() => setShowForm(s => !s)} style={btnPrimary}>
+        <button onClick={() => setShowAddForm(s => !s)} style={btnPrimary}>
           <Plus size={14} /> Aggiungi servizio
         </button>
       </div>
 
-      {showForm && (
+      {/* Form aggiungi nuovo */}
+      {showAddForm && (
         <form onSubmit={handleAdd} style={{ background: '#161616', padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid rgba(196,18,48,0.2)' }}>
           <p style={subTitle}>Nuovo servizio</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
@@ -421,37 +460,38 @@ function PrezziTab() {
           </div>
           <div style={{ display: 'flex', gap: '0.75rem' }}>
             <button type="submit" disabled={saving} style={btnPrimary}><Check size={14} /> Salva</button>
-            <button type="button" onClick={() => setShowForm(false)} style={btnSecondary}><X size={14} /> Annulla</button>
+            <button type="button" onClick={() => setShowAddForm(false)} style={btnSecondary}><X size={14} /> Annulla</button>
           </div>
         </form>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {items.map(item => (
-          <div key={item.id} style={{ background: '#161616', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-            {editing === item.id ? (
+      {/* Lista servizi */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+        {displayItems.map(item => (
+          <div key={item.key} style={{ background: '#161616', padding: '1.1rem 1.25rem', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+            {editing === item.key ? (
               <EditServiceRow item={item} onSave={handleSaveEdit} onCancel={() => setEditing(null)} saving={saving} />
             ) : (
               <>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'baseline', marginBottom: '0.3rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'baseline', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
                     <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.55rem', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#C41230', flexShrink: 0 }}>{item.cat}</span>
                     <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.85rem', fontWeight: 600, color: '#F5F0EA' }}>{item.name}</span>
-                    <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: '#C41230', fontWeight: 700, marginLeft: 'auto' }}>{item.price}</span>
+                    <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.82rem', color: '#C41230', fontWeight: 700, marginLeft: 'auto', flexShrink: 0 }}>{item.price}</span>
                   </div>
-                  {item.desc && <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.73rem', color: 'rgba(245,240,234,0.4)', margin: 0, lineHeight: 1.6 }}>{item.desc}</p>}
+                  {item.desc && <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', color: 'rgba(245,240,234,0.35)', margin: 0, lineHeight: 1.6 }}>{item.desc}</p>}
+                  {item.isDefault && <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.2)' }}>Predefinito</span>}
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
-                  <button onClick={() => setEditing(item.id)} style={btnSecondary}><Pencil size={13} /> Modifica</button>
-                  <button onClick={() => handleDelete(item.id)} style={{ ...btnSecondary, borderColor: 'rgba(196,18,48,0.3)', color: '#C41230' }}><Trash2 size={13} /></button>
+                <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
+                  <button onClick={() => setEditing(item.key)} style={btnSecondary}><Pencil size={13} /> Modifica</button>
+                  {!item.isDefault && (
+                    <button onClick={() => handleDelete(item.id)} style={{ ...btnSecondary, borderColor: 'rgba(196,18,48,0.3)', color: '#C41230' }}><Trash2 size={13} /></button>
+                  )}
                 </div>
               </>
             )}
           </div>
         ))}
-        {items.length === 0 && !showForm && (
-          <p style={{ color: 'rgba(245,240,234,0.2)', fontFamily: 'Montserrat, sans-serif', fontSize: '0.8rem', padding: '1rem 0' }}>Usa "Aggiungi servizio" per inserire i prezzi.</p>
-        )}
       </div>
     </div>
   )

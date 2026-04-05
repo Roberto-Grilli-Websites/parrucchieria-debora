@@ -454,7 +454,15 @@ function About() {
 /* ─── SERVICES ───────────────────────────────── */
 function Services() {
   const [active, setActive] = useState('Tutti')
-  const filtered = active === 'Tutti' ? services : services.filter(s => s.cat === active)
+  const [serviceList, setServiceList] = useState(services)
+
+  useEffect(() => {
+    getDocs(collection(db, 'prezzi')).then(snap => {
+      if (!snap.empty) setServiceList(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    }).catch(() => {})
+  }, [])
+
+  const filtered = active === 'Tutti' ? serviceList : serviceList.filter(s => s.cat === active)
   return (
     <section id="servizi" style={{ padding:'9rem 2rem',background:'#111',overflow:'hidden' }}>
       <div style={{ maxWidth:1280,margin:'0 auto' }}>
@@ -462,7 +470,7 @@ function Services() {
 
         {/* Filter pills */}
         <div style={{ display:'flex',flexWrap:'wrap',gap:'0.5rem',justifyContent:'center',marginBottom:'3.5rem' }}>
-          {serviceCategories.map(cat => (
+          {['Tutti', ...new Set(serviceList.map(s => s.cat).filter(Boolean))].map(cat => (
             <button key={cat} onClick={()=>setActive(cat)}
               style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.55rem 1.4rem',border:`1.5px solid ${active===cat?'#C41230':'rgba(245,240,234,0.15)'}`,background:active===cat?'#C41230':'transparent',color:active===cat?'#F5F0EA':'rgba(245,240,234,0.45)',cursor:'pointer',transition:'all 0.25s ease' }}
               onMouseEnter={e=>{ if(active!==cat){ e.currentTarget.style.borderColor='rgba(196,18,48,0.5)'; e.currentTarget.style.color='#F5F0EA' }}}
