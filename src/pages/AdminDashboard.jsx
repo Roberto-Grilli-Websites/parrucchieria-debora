@@ -490,10 +490,14 @@ function InfoTab() {
     email: '',
     orari: 'Lun – Ven: 9:00 – 18:30\nSabato: 9:00 – 17:00\nDomenica: chiuso',
     whatsapp: '',
+    heroVideo: '',
+    staffPhoto: '',
   })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [msg, setMsg] = useState('')
+  const [mediaUploading, setMediaUploading] = useState({})
+  const [mediaMsg, setMediaMsg] = useState({})
 
   useEffect(() => {
     getDocs(collection(db, 'info'))
@@ -519,21 +523,51 @@ function InfoTab() {
     }
   }
 
+  const handleMediaUpload = async (field, file) => {
+    setMediaUploading(m => ({ ...m, [field]: true }))
+    setMediaMsg(m => ({ ...m, [field]: '' }))
+    try {
+      const isVideo = file.type.startsWith('video/')
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', UPLOAD_PRESET)
+      formData.append('folder', 'parrucchiera-debora/assets')
+      const endpoint = isVideo ? 'video' : 'image'
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${endpoint}/upload`, { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error.message)
+      const newInfo = { ...info, [field]: data.secure_url }
+      setInfo(newInfo)
+      await setDoc(doc(db, 'info', INFO_ID), newInfo)
+      setMediaMsg(m => ({ ...m, [field]: 'ok' }))
+    } catch (err) {
+      setMediaMsg(m => ({ ...m, [field]: err.message }))
+    } finally {
+      setMediaUploading(m => ({ ...m, [field]: false }))
+    }
+  }
+
   if (loading) return <Spinner />
 
-  const fields = [
+  const textFields = [
     { label: 'Indirizzo',        key: 'indirizzo', ph: 'Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)', multi: true },
-    { label: 'Telefono',         key: 'telefono',  ph: '0736 342914',                                     multi: false },
-    { label: 'WhatsApp (numero con prefisso)', key: 'whatsapp', ph: '+390736342914',                      multi: false },
-    { label: 'Email',            key: 'email',     ph: 'info@parrucchieradebora.it',                       multi: false },
-    { label: 'Orari di apertura (una riga per fascia)', key: 'orari', ph: 'Lun – Ven: 9:00 – 18:30\nSabato: 9:00 – 17:00\nDomenica: chiuso', multi: true },
+    { label: 'Telefono',         key: 'telefono',  ph: '0736 342914',   multi: false },
+    { label: 'WhatsApp (prefisso internazionale)', key: 'whatsapp', ph: '+390736342914', multi: false },
+    { label: 'Email',            key: 'email',     ph: 'info@parrucchieradebora.it', multi: false },
+    { label: 'Orari di apertura', key: 'orari',   ph: 'Lun – Ven: 9:00 – 18:30\nSabato: 9:00 – 17:00\nDomenica: chiuso', multi: true },
+  ]
+
+  const mediaFields = [
+    { label: 'Video Hero (sfondo homepage)', key: 'heroVideo', accept: 'video/*', current: info.heroVideo, fallback: 'hero.mp4 locale', isVideo: true },
+    { label: 'Foto Staff (sezione Chi Sono)', key: 'staffPhoto', accept: 'image/*', current: info.staffPhoto, fallback: 'staff.jpg locale', isVideo: false },
   ]
 
   return (
     <div>
+      {/* Testi e contatti */}
       <h2 style={sectionTitle}>Informazioni Salone</h2>
-      <form onSubmit={handleSave} style={{ background: '#161616', padding: '1.75rem', border: '1px solid rgba(196,18,48,0.1)', maxWidth: 640 }}>
-        {fields.map(({ label, key, ph, multi }) => (
+      <form onSubmit={handleSave} style={{ background: '#161616', padding: '1.75rem', border: '1px solid rgba(196,18,48,0.1)', maxWidth: 640, marginBottom: '2.5rem' }}>
+        {textFields.map(({ label, key, ph, multi }) => (
           <div key={key} style={{ marginBottom: '1.25rem' }}>
             <label style={labelStyle}>{label}</label>
             {multi ? (
@@ -543,15 +577,63 @@ function InfoTab() {
             )}
           </div>
         ))}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <button type="submit" disabled={saving} style={btnPrimary}>
             <Check size={14} /> {saving ? 'Salvataggio...' : 'Salva modifiche'}
           </button>
-          {msg && (
-            <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.75rem', color: msg.startsWith('Errore') ? '#C41230' : '#4caf50' }}>{msg}</span>
-          )}
+          {msg && <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.75rem', color: msg.startsWith('Errore') ? '#C41230' : '#4caf50' }}>{msg}</span>}
         </div>
       </form>
+
+      {/* Media fissi */}
+      <h2 style={{ ...sectionTitle, fontSize: '1.4rem' }}>Media Fissi del Sito</h2>
+      <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.72rem', color: 'rgba(245,240,234,0.35)', marginBottom: '1.5rem', marginTop: '-1rem' }}>
+        Carica qui le immagini/video che rimangono fissi nel sito (non nella galleria).
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', maxWidth: 640 }}>
+        {mediaFields.map(({ label, key, accept, current, fallback, isVideo }) => {
+          const uploading = mediaUploading[key]
+          const mMsg = mediaMsg[key]
+          return (
+            <div key={key} style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+              {/* Preview */}
+              <div style={{ position: 'relative', aspectRatio: '16/9', background: '#0e0e0e' }}>
+                {current
+                  ? isVideo
+                    ? <video src={current} style={{ width: '100%', height: '100%', objectFit: 'cover' }} muted playsInline />
+                    : <img src={current} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: '0.4rem' }}>
+                      <Upload size={24} color="rgba(245,240,234,0.15)" />
+                      <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.6rem', color: 'rgba(245,240,234,0.2)' }}>{fallback}</span>
+                    </div>
+                }
+                {uploading && (
+                  <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 28, height: 28, border: '3px solid rgba(196,18,48,0.3)', borderTopColor: '#C41230', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+                  </div>
+                )}
+              </div>
+              {/* Info + upload */}
+              <div style={{ padding: '0.85rem' }}>
+                <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.65rem', fontWeight: 600, color: '#F5F0EA', marginBottom: '0.65rem' }}>{label}</div>
+                {mMsg === 'ok'
+                  ? <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.65rem', color: '#4caf50', margin: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Check size={12} /> Aggiornato!</p>
+                  : mMsg
+                    ? <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.65rem', color: '#C41230', margin: 0 }}>Errore: {mMsg}</p>
+                    : (
+                      <label style={{ ...btnSecondary, display: 'flex', cursor: uploading ? 'not-allowed' : 'pointer', justifyContent: 'center', opacity: uploading ? 0.5 : 1 }}>
+                        <Upload size={12} style={{ marginRight: '0.4rem' }} />
+                        {current ? 'Sostituisci' : 'Carica file'}
+                        <input type="file" accept={accept} style={{ display: 'none' }} disabled={uploading}
+                          onChange={e => { if (e.target.files[0]) handleMediaUpload(key, e.target.files[0]) }} />
+                      </label>
+                    )
+                }
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

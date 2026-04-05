@@ -16,6 +16,18 @@ const WA_LINK = "https://wa.me/390736342914?text=Ciao%20Debora!%20Vorrei%20preno
 const PHONE   = "tel:+390736342914"
 const BASE    = import.meta.env.BASE_URL
 
+/* ─── HOOK: site info da Firestore ──────────── */
+function useSiteInfo() {
+  const [info, setInfo] = useState({})
+  useEffect(() => {
+    getDocs(collection(db, 'info')).then(snap => {
+      const d = snap.docs.find(d => d.id === 'principale')
+      if (d) setInfo(d.data())
+    }).catch(() => {})
+  }, [])
+  return info
+}
+
 /* ─── HOOK: visibility ───────────────────────── */
 function useVisible(threshold = 0.12) {
   const ref = useRef(null)
@@ -262,13 +274,15 @@ function Navbar() {
 /* ─── HERO ───────────────────────────────────── */
 function Hero() {
   const scrollY = useScrollY()
+  const info = useSiteInfo()
+  const heroSrc = info.heroVideo || `${BASE}hero.mp4`
   return (
     <section id="home" style={{ minHeight:'100vh',position:'relative',display:'flex',alignItems:'center',background:'#0e0e0e',overflow:'hidden' }}>
 
       {/* VIDEO BACKGROUND */}
       <video autoPlay muted loop playsInline
         style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',transform:`translateY(${scrollY*0.25}px) scale(1.1)`,transition:'transform 0.1s linear',pointerEvents:'none' }}>
-        <source src={`${BASE}hero.mp4`} type="video/mp4"/>
+        <source src={heroSrc} type="video/mp4"/>
       </video>
 
       {/* Layered overlays — dark base + brand red tint */}
@@ -371,6 +385,8 @@ function Stats() {
 function About() {
   const [rL,vL] = useVisible()
   const [rR,vR] = useVisible()
+  const info = useSiteInfo()
+  const staffSrc = info.staffPhoto || `${BASE}staff.jpg`
   return (
     <section id="chi-sono" style={{ padding:'9rem 2rem',background:'#F5F0EA',overflow:'hidden' }}>
       <div style={{ maxWidth:1280,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:'6rem',alignItems:'center' }}>
@@ -380,7 +396,7 @@ function About() {
           <div style={{ background:'#1C1C1C',position:'relative',overflow:'hidden' }}>
             {/* animated red top bar */}
             <div style={{ position:'absolute',top:0,left:0,right:0,height:3,zIndex:2,background:'linear-gradient(90deg,transparent,#C41230,transparent)',backgroundSize:'200% 100%',animation:vL?'shimmerLine 2.5s 0.5s ease both':'none' }}/>
-            <img src={`${BASE}staff.jpg`} alt="Team Parrucchieria Debora" style={{ width:'100%',height:'auto',display:'block',objectFit:'cover' }}/>
+            <img src={staffSrc} alt="Team Parrucchieria Debora" style={{ width:'100%',height:'auto',display:'block',objectFit:'cover' }}/>
             {/* caption overlay */}
             <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'2rem',background:'linear-gradient(to top,rgba(0,0,0,0.82) 0%,transparent 100%)' }}>
               <p style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.15rem',fontStyle:'italic',fontWeight:400,color:'rgba(245,240,234,0.85)',lineHeight:1.7,textAlign:'center' }}>
@@ -438,18 +454,7 @@ function About() {
 /* ─── SERVICES ───────────────────────────────── */
 function Services() {
   const [active, setActive] = useState('Tutti')
-  const [serviceList, setServiceList] = useState(services)
-
-  useEffect(() => {
-    getDocs(collection(db, 'prezzi')).then(snap => {
-      if (!snap.empty) {
-        setServiceList(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-      }
-    }).catch(() => {})
-  }, [])
-
-  const cats = ['Tutti', ...new Set(serviceList.map(s => s.cat).filter(Boolean))]
-  const filtered = active === 'Tutti' ? serviceList : serviceList.filter(s => s.cat === active)
+  const filtered = active === 'Tutti' ? services : services.filter(s => s.cat === active)
   return (
     <section id="servizi" style={{ padding:'9rem 2rem',background:'#111',overflow:'hidden' }}>
       <div style={{ maxWidth:1280,margin:'0 auto' }}>
@@ -457,7 +462,7 @@ function Services() {
 
         {/* Filter pills */}
         <div style={{ display:'flex',flexWrap:'wrap',gap:'0.5rem',justifyContent:'center',marginBottom:'3.5rem' }}>
-          {cats.map(cat => (
+          {serviceCategories.map(cat => (
             <button key={cat} onClick={()=>setActive(cat)}
               style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.62rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.55rem 1.4rem',border:`1.5px solid ${active===cat?'#C41230':'rgba(245,240,234,0.15)'}`,background:active===cat?'#C41230':'transparent',color:active===cat?'#F5F0EA':'rgba(245,240,234,0.45)',cursor:'pointer',transition:'all 0.25s ease' }}
               onMouseEnter={e=>{ if(active!==cat){ e.currentTarget.style.borderColor='rgba(196,18,48,0.5)'; e.currentTarget.style.color='#F5F0EA' }}}
