@@ -607,15 +607,25 @@ function Gallery() {
           style={{ position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.92)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem',animation:'scaleIn 0.3s ease',cursor:'zoom-out' }}>
           <button onClick={closeLightbox} style={{ position:'absolute',top:'1.5rem',right:'1.5rem',background:'none',border:'none',color:'#F5F0EA',cursor:'pointer',padding:'0.5rem' }}><X size={28}/></button>
 
-          <div style={{ position:'relative',width:'min(90vw,500px)',aspectRatio:'3/4' }} onClick={e=>e.stopPropagation()}>
+          <div style={{ position:'relative',display:'flex',alignItems:'center',gap:'1rem' }} onClick={e=>e.stopPropagation()}>
+            {/* prev arrow */}
+            {hasPrev && (
+              <button onClick={()=>setSlideIdx(i=>i-1)}
+                style={{ flexShrink:0,background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.4rem',transition:'border-color 0.2s,background 0.2s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.background='rgba(196,18,48,0.15)'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.25)';e.currentTarget.style.background='none'}}
+              >‹</button>
+            )}
+
             {/* image */}
-            <div style={{ width:'100%',height:'100%',background:lightbox.gradient,position:'relative',overflow:'hidden',animation:'scaleIn 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
+            <div style={{ position:'relative',overflow:'hidden',background:lightbox.gradient,animation:'scaleIn 0.4s cubic-bezier(0.16,1,0.3,1)',maxWidth:'min(80vw,600px)',maxHeight:'80vh',display:'flex' }}>
               {slides.length > 0
-                ? <img key={slideIdx} src={slides[slideIdx].src} alt={lightbox.label} style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',animation:'scaleIn 0.3s ease' }}/>
-                : <div style={{ position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center' }}><Scissors size={48} color="rgba(245,240,234,0.15)" strokeWidth={0.8}/></div>
+                ? <img key={slideIdx} src={slides[slideIdx].src} alt={lightbox.label}
+                    style={{ display:'block',maxWidth:'min(80vw,600px)',maxHeight:'80vh',width:'auto',height:'auto',objectFit:'contain',animation:'scaleIn 0.3s ease' }}/>
+                : <div style={{ width:300,height:400,display:'flex',alignItems:'center',justifyContent:'center' }}><Scissors size={48} color="rgba(245,240,234,0.15)" strokeWidth={0.8}/></div>
               }
 
-              {/* badge "Prima" / "Dopo" */}
+              {/* badge "Prima" */}
               {currentBadge && (
                 <div style={{ position:'absolute',bottom:'1.2rem',right:'1.2rem',background:'rgba(14,14,14,0.72)',backdropFilter:'blur(6px)',border:'1px solid rgba(196,18,48,0.5)',padding:'0.35rem 0.85rem' }}>
                   <span style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.1rem',fontStyle:'italic',fontWeight:400,color:'#F5F0EA',letterSpacing:'0.04em' }}>{currentBadge}</span>
@@ -623,23 +633,16 @@ function Gallery() {
               )}
 
               {/* caption */}
-              <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'2rem',background:'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
-                <div style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.6rem',fontStyle:'italic',color:'#F5F0EA' }}>{lightbox.label}</div>
-                <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C41230',marginTop:'0.3rem' }}>{lightbox.sub}</div>
+              <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'1.25rem 1.5rem',background:'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
+                <div style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.4rem',fontStyle:'italic',color:'#F5F0EA' }}>{lightbox.label}</div>
+                <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C41230',marginTop:'0.2rem' }}>{lightbox.sub}</div>
               </div>
             </div>
 
-            {/* prev / next arrows */}
-            {hasPrev && (
-              <button onClick={()=>setSlideIdx(i=>i-1)}
-                style={{ position:'absolute',left:'-3.5rem',top:'50%',transform:'translateY(-50%)',background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'border-color 0.2s,background 0.2s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.background='rgba(196,18,48,0.15)'}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.25)';e.currentTarget.style.background='none'}}
-              >‹</button>
-            )}
+            {/* next arrow */}
             {hasNext && (
               <button onClick={()=>setSlideIdx(i=>i+1)}
-                style={{ position:'absolute',right:'-3.5rem',top:'50%',transform:'translateY(-50%)',background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.4rem',transition:'border-color 0.2s,background 0.2s' }}
+                style={{ flexShrink:0,background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.4rem',transition:'border-color 0.2s,background 0.2s' }}
                 onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.background='rgba(196,18,48,0.15)'}}
                 onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.25)';e.currentTarget.style.background='none'}}
               >›</button>
