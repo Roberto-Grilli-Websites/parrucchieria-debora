@@ -802,18 +802,28 @@ function CTABanner() {
   )
 }
 
+const ORARI_VERSION = 2
+const DEFAULT_ORARI = "Lunedì: chiuso\nMartedì: 8:30 – 12:30 / 15:30 – 19:30\nMercoledì: 8:30 – 17:00\nGiovedì: 8:30 – 12:30 / 15:30 – 19:30\nVenerdì: 8:30 – 19:00\nSabato: 8:30 – 19:00\nDomenica: chiuso"
+
 /* ─── CONTACT ────────────────────────────────── */
 function Contact() {
   const [info, setInfo] = useState({
     indirizzo: "Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)",
     telefono: "0736 342914",
-    orari: "Lunedì: chiuso\nMartedì: 8:30 – 12:30 / 15:30 – 19:30\nMercoledì: 8:30 – 17:00\nGiovedì: 8:30 – 12:30 / 15:30 – 19:30\nVenerdì: 8:30 – 19:00\nSabato: 8:30 – 19:00\nDomenica: chiuso",
+    orari: DEFAULT_ORARI,
   })
 
   useEffect(() => {
     getDocs(collection(db, 'info')).then(snap => {
       const d = snap.docs.find(d => d.id === 'principale')
-      if (d) setInfo(prev => ({ ...prev, ...d.data() }))
+      if (d) {
+        const data = d.data()
+        setInfo(prev => ({
+          ...prev,
+          ...data,
+          orari: (data.orariVersion >= ORARI_VERSION) ? data.orari : DEFAULT_ORARI,
+        }))
+      }
     }).catch(() => {})
   }, [])
 
@@ -848,6 +858,7 @@ function Contact() {
         <div style={{ width:'100%',height:320,marginTop:'4rem',overflow:'hidden',position:'relative' }}>
           <div style={{ position:'absolute',top:0,left:0,right:0,height:3,background:'#C41230',zIndex:1 }}/>
           <iframe title="Mappa Parrucchieria Debora" src="https://maps.google.com/maps?q=42.849746,13.5868388&z=16&output=embed" style={{ width:'100%',height:'100%',border:0,filter:'grayscale(40%) contrast(1.1)' }} allowFullScreen loading="lazy"/>
+          <a href="https://www.google.com/maps/place/Parrucchieria+Debora+di+Carboni+Debora/@42.849746,13.5868388,17z/data=!4m6!3m5!1s0x1331f0d97c4cd84f:0x23d4495b50e31431!8m2!3d42.849746!4d13.5868388!16s%2Fg%2F119wj0y07?entry=ttu" target="_blank" rel="noopener noreferrer" style={{ position:'absolute',top:0,left:0,width:'100%',height:'100%',zIndex:2 }} aria-label="Apri su Google Maps"/>
         </div>
       </div>
     </section>
@@ -869,6 +880,20 @@ function InfoCard({icon:Icon,label,val,idx}) {
 
 /* ─── FOOTER ─────────────────────────────────── */
 function Footer() {
+  const [orari, setOrari] = useState(DEFAULT_ORARI)
+  useEffect(() => {
+    getDocs(collection(db, 'info')).then(snap => {
+      const d = snap.docs.find(d => d.id === 'principale')
+      if (d) {
+        const data = d.data()
+        if (data.orariVersion >= ORARI_VERSION && data.orari) setOrari(data.orari)
+      }
+    }).catch(() => {})
+  }, [])
+  const orariRows = orari.split('\n').map(line => {
+    const idx = line.indexOf(':')
+    return idx > -1 ? [line.slice(0, idx).trim(), line.slice(idx + 1).trim()] : [line, '']
+  })
   return (
     <footer style={{ background:'#0e0e0e',padding:'4rem 2rem 2rem',borderTop:'1px solid rgba(196,18,48,0.15)' }}>
       <div style={{ maxWidth:1280,margin:'0 auto' }}>
@@ -890,7 +915,7 @@ function Footer() {
           </div>
           <div>
             <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',color:'#C41230',marginBottom:'1.25rem' }}>Orari</div>
-            {[['Lunedì – Venerdì','9:00 – 18:30'],['Sabato','9:00 – 17:00'],['Domenica','Chiuso']].map(([g,h])=>(
+            {orariRows.map(([g,h])=>(
               <div key={g} style={{ display:'flex',justifyContent:'space-between',gap:'1rem',marginBottom:'0.55rem' }}>
                 <span style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.72rem',fontWeight:300,color:'rgba(245,240,234,0.35)' }}>{g}</span>
                 <span style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.72rem',fontWeight:400,color:'rgba(245,240,234,0.55)',whiteSpace:'nowrap' }}>{h}</span>

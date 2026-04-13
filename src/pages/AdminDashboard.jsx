@@ -630,7 +630,7 @@ function InfoTab() {
     indirizzo: 'Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)',
     telefono: '0736 342914',
     email: '',
-    orari: 'Lun – Ven: 9:00 – 18:30\nSabato: 9:00 – 17:00\nDomenica: chiuso',
+    orari: 'Lunedì: chiuso\nMartedì: 8:30 – 12:30 / 15:30 – 19:30\nMercoledì: 8:30 – 17:00\nGiovedì: 8:30 – 12:30 / 15:30 – 19:30\nVenerdì: 8:30 – 19:00\nSabato: 8:30 – 19:00\nDomenica: chiuso',
     whatsapp: '',
     heroVideo: '',
     staffPhoto: '',
@@ -656,7 +656,7 @@ function InfoTab() {
     setSaving(true)
     setMsg('')
     try {
-      await setDoc(doc(db, 'info', INFO_ID), info)
+      await setDoc(doc(db, 'info', INFO_ID), { ...info, orariVersion: 2 })
       setMsg('Salvato!')
     } catch (err) {
       setMsg('Errore: ' + err.message)
