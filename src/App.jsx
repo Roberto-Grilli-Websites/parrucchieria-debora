@@ -291,7 +291,7 @@ function Hero() {
       </video>
 
       {/* Layered overlays — dark base + brand red tint */}
-      <div style={{ position:'absolute',inset:0,background:'linear-gradient(105deg,rgba(10,4,6,0.88) 0%,rgba(28,8,16,0.72) 50%,rgba(10,4,6,0.55) 100%)',pointerEvents:'none' }}/>
+      <div style={{ position:'absolute',inset:0,background:'linear-gradient(105deg,rgba(10,4,6,0.96) 0%,rgba(28,8,16,0.88) 50%,rgba(10,4,6,0.78) 100%)',pointerEvents:'none' }}/>
       <div style={{ position:'absolute',inset:0,background:'radial-gradient(ellipse at 70% 50%,rgba(196,18,48,0.07) 0%,transparent 65%)',pointerEvents:'none' }}/>
 
 {/* Rotating decorative ring */}
