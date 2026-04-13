@@ -706,9 +706,29 @@ function Reviews() {
           {reviews.map((r,i)=><ReviewCard key={r.name} r={r} i={i} active={i===active}/>)}
         </div>
         <div style={{ textAlign:'center',marginTop:'4rem' }}>
-          <p style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.1rem',fontStyle:'italic',fontWeight:400,color:'rgba(245,240,234,0.35)',letterSpacing:'0.04em' }}>
+          <p style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.1rem',fontStyle:'italic',fontWeight:400,color:'rgba(245,240,234,0.35)',letterSpacing:'0.04em',marginBottom:'3rem' }}>
             "Le parole più belle vengono direttamente dalle nostre clienti."
           </p>
+          {/* CTA recensione */}
+          <div style={{ display:'inline-flex',flexDirection:'column',alignItems:'center',gap:'1rem',padding:'2.5rem 3rem',border:'1px solid rgba(196,18,48,0.25)',background:'rgba(196,18,48,0.04)',maxWidth:460 }}>
+            <div style={{ display:'flex',gap:4 }}>
+              {[...Array(5)].map((_,i)=><Star key={i} size={16} fill="#C41230" color="#C41230"/>)}
+            </div>
+            <p style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.3rem',fontWeight:400,color:'#F5F0EA',lineHeight:1.4,margin:0 }}>
+              Sei stata da noi?<br/><span style={{ fontStyle:'italic',color:'#C41230' }}>Lascia la tua recensione.</span>
+            </p>
+            <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.72rem',fontWeight:300,color:'rgba(245,240,234,0.45)',lineHeight:1.7,margin:0 }}>
+              La tua opinione aiuta altre clienti a sceglierci e ci spinge a fare sempre meglio.
+            </p>
+            <a href="https://search.google.com/local/writereview?placeid=0x1331f0d97c4cd84f:0x23d4495b50e31431"
+              target="_blank" rel="noreferrer"
+              style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.85rem 2rem',textDecoration:'none',transition:'all 0.3s ease',marginTop:'0.5rem' }}
+              onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 24px rgba(196,18,48,0.4)'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='#C41230';e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}
+            >
+              <Star size={13} fill="#F5F0EA" color="#F5F0EA"/> Scrivi una recensione su Google
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -878,7 +898,7 @@ function Footer() {
           </div>
         </div>
         <div style={{ borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:'1.75rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'1rem' }}>
-          <span style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.62rem',color:'rgba(245,240,234,0.18)' }}>© 2025 Parrucchieria Debora di Carboni Debora — P.IVA [da inserire]</span>
+          <span style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.62rem',color:'rgba(245,240,234,0.18)' }}>© 2025 Parrucchieria Debora di Carboni Debora — P.IVA 01779990447</span>
           <div style={{ display:'flex',gap:'2rem' }}>
             {['Privacy Policy','Cookie Policy'].map(l=>(
               <a key={l} href="#" style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.62rem',color:'rgba(245,240,234,0.18)',textDecoration:'none',transition:'color 0.3s' }}
