@@ -146,8 +146,8 @@ function GalleryTab() {
   const mergedDefaults = DEFAULT_GALLERY.map(g => {
     const ov = overrides?.[g.label]
     return ov
-      ? { ...g, _id: g.label, label: ov.label || g.label, url: ov.url, sub: ov.sub || g.sub, type: ov.type || 'image', images: ov.images || [], hasOverride: true }
-      : { ...g, _id: g.label, url: g.img, type: 'image', images: [], hasOverride: false }
+      ? { ...g, _id: g.label, label: ov.label || g.label, url: ov.url, sub: ov.sub || g.sub, type: ov.type || 'image', images: ov.images || g.images || [], hasOverride: true }
+      : { ...g, _id: g.label, url: g.img, type: 'image', images: g.images || [], hasOverride: false }
   })
   const extraItems = Object.entries(overrides || {})
     .filter(([id]) => !defaultLabels.has(id))
@@ -241,6 +241,13 @@ function GalleryTab() {
     loadGallery()
   }
 
+  const handleCleanupObsolete = async () => {
+    if (!confirm('Eliminare tutte le voci obsolete non presenti nel portfolio attuale?')) return
+    const obsolete = Object.keys(overrides || {}).filter(id => !defaultLabels.has(id))
+    await Promise.all(obsolete.map(id => deleteDoc(doc(db, 'gallery', id))))
+    loadGallery()
+  }
+
   const startEditMeta = (item) => {
     setEditingMeta(item._id)
     setEditForm({ label: item.label, sub: item.sub || '' })
@@ -278,6 +285,7 @@ function GalleryTab() {
         label: newItem.label, sub: newItem.sub || 'Lavoro',
         url: uploaded.url, publicId: uploaded.publicId, type: uploaded.type,
         images: [{ url: uploaded.url, publicId: uploaded.publicId, badge: '' }],
+        adminAdded: true,
         createdAt: new Date().toISOString(),
       })
       setNewItem({ label: '', sub: '' })
@@ -297,7 +305,14 @@ function GalleryTab() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h2 style={{ ...sectionTitle, marginBottom: 0 }}>Galleria Foto & Video</h2>
-        <button onClick={() => setShowAddForm(s => !s)} style={btnPrimary}><Plus size={14} /> Aggiungi nuovo</button>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          {Object.keys(overrides || {}).some(id => !defaultLabels.has(id)) && (
+            <button onClick={handleCleanupObsolete} style={{ ...btnSecondary, color: '#C41230', borderColor: 'rgba(196,18,48,0.4)' }}>
+              <Trash2 size={13} /> Pulisci voci obsolete
+            </button>
+          )}
+          <button onClick={() => setShowAddForm(s => !s)} style={btnPrimary}><Plus size={14} /> Aggiungi nuovo</button>
+        </div>
       </div>
 
       {showAddForm && (

@@ -553,10 +553,13 @@ function Gallery() {
     const img = g.images ? g.img : (ov.url || g.img)
     return { ...g, img, sub: ov.sub || g.sub, label: ov.label || g.label, images: fsImages || g.images }
   })
-  const extras = Object.entries(overrides).filter(([id]) => !defaultLabels.has(id)).map(([, d]) => {
-    const fsImages = d.images?.map(im => ({ src: im.url, badge: im.badge || '' }))
-    return { label: d.label, sub: d.sub, img: d.url, gradient: 'linear-gradient(160deg,#1a0800 0%,#3d1a0a 50%,#6b3316 100%)', images: fsImages }
-  })
+  // Solo extras con adminAdded:true evitano di mostrare voci Firestore obsolete
+  const extras = Object.entries(overrides)
+    .filter(([id, d]) => !defaultLabels.has(id) && d.adminAdded === true)
+    .map(([, d]) => {
+      const fsImages = d.images?.map(im => ({ src: im.url, badge: im.badge || '' }))
+      return { label: d.label, sub: d.sub, img: d.url, gradient: 'linear-gradient(160deg,#1a0800 0%,#3d1a0a 50%,#6b3316 100%)', images: fsImages }
+    })
   const items = [...merged, ...extras]
 
   const openLightbox = (g) => { setLightbox(g); setSlideIdx(0) }
@@ -716,7 +719,7 @@ function Reviews() {
             <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.72rem',fontWeight:300,color:'rgba(245,240,234,0.45)',lineHeight:1.7,margin:0 }}>
               La tua opinione aiuta altre clienti a sceglierci e ci spinge a fare sempre meglio.
             </p>
-            <a href="https://www.google.com/maps/place/Parrucchieria+Debora+di+Carboni+Debora/@42.849746,13.0100566,10z/data=!4m12!1m2!2m1!1sdebora+parruchiera!3m8!1s0x1331f0d97c4cd84f:0x23d4495b50e31431!8m2!3d42.849746!4d13.5868388!9m1!1b1!15sChNkZWJvcmEgcGFycnVjY2hpZXJhkgEKaGFpcl9zYWxvbuABAA!16s%2Fg%2F119wj0y07?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D"
+            <a href="https://www.google.com/maps/place/Parrucchieria+Debora+di+Carboni+Debora/@42.849746,13.5868388,17z/data=!4m6!3m5!1s0x1331f0d97c4cd84f:0x23d4495b50e31431!8m2!3d42.849746!4d13.5868388!16s%2Fg%2F119wj0y07"
               target="_blank" rel="noreferrer"
               style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.85rem 2rem',textDecoration:'none',transition:'all 0.3s ease',marginTop:'0.5rem' }}
               onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 24px rgba(196,18,48,0.4)'}}
