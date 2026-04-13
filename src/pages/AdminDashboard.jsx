@@ -155,6 +155,13 @@ function GalleryTab() {
     .map(([id, data]) => ({ _id: id, label: data.label || id, sub: data.sub, url: data.url, type: data.type || 'image', images: data.images || [], hasOverride: true, isExtra: true }))
   const displayItems = [...mergedDefaults, ...extraItems]
 
+  /* Normalizza le immagini dell'item corrente (da Firestore o da default) */
+  const getItemImages = (item) => {
+    const existing = overrides?.[item._id]
+    if (existing?.images?.length > 0) return existing.images
+    return item.images.map(im => ({ url: im.url || im.src || '', publicId: im.publicId || '', badge: im.badge || '' }))
+  }
+
   /* Sostituisci immagine principale */
   const handleReplace = async (item, file) => {
     setReplacing(item._id)
@@ -162,11 +169,12 @@ function GalleryTab() {
     try {
       const uploaded = await uploadToCloudinary(file)
       const existing = overrides?.[item._id] || {}
-      const images = existing.images || []
+      const images = getItemImages(item)
       const updatedImages = images.length > 0
         ? [{ url: uploaded.url, publicId: uploaded.publicId, badge: images[0]?.badge || '' }, ...images.slice(1)]
         : [{ url: uploaded.url, publicId: uploaded.publicId, badge: '' }]
       await setDoc(doc(db, 'gallery', item._id), {
+        ...existing,
         label: item.label, sub: item.sub,
         url: uploaded.url, publicId: uploaded.publicId, type: uploaded.type,
         images: updatedImages,
@@ -188,12 +196,12 @@ function GalleryTab() {
     try {
       const uploaded = await uploadToCloudinary(file)
       const existing = overrides?.[item._id] || {}
-      const images = existing.images || (existing.url ? [{ url: existing.url, publicId: existing.publicId || '', badge: '' }] : [])
+      const images = getItemImages(item)
       const updatedImages = [...images, { url: uploaded.url, publicId: uploaded.publicId, badge: newSlide.badge }]
       await setDoc(doc(db, 'gallery', item._id), {
         ...existing,
         label: item.label, sub: item.sub,
-        url: existing.url || uploaded.url,
+        url: existing.url || images[0]?.url || uploaded.url,
         images: updatedImages,
         updatedAt: new Date().toISOString(),
       })
@@ -210,7 +218,7 @@ function GalleryTab() {
   const handleRemoveSlide = async (item, idx) => {
     if (!confirm('Rimuovere questa immagine dallo slideshow?')) return
     const existing = overrides?.[item._id] || {}
-    const images = [...(existing.images || [])]
+    const images = [...getItemImages(item)]
     images.splice(idx, 1)
     const newUrl = images[0]?.url || existing.url || ''
     await setDoc(doc(db, 'gallery', item._id), {
@@ -225,7 +233,7 @@ function GalleryTab() {
   /* Aggiorna badge di una slide */
   const handleUpdateBadge = async (item, idx, badge) => {
     const existing = overrides?.[item._id] || {}
-    const images = (existing.images || []).map((im, i) => i === idx ? { ...im, badge } : im)
+    const images = getItemImages(item).map((im, i) => i === idx ? { ...im, badge } : im)
     await setDoc(doc(db, 'gallery', item._id), {
       ...existing,
       images,
