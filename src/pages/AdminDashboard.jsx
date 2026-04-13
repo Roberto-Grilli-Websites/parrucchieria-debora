@@ -114,7 +114,7 @@ async function uploadToCloudinary(file) {
 
 /* ─── GALLERY TAB ───────────────────────────────── */
 function GalleryTab() {
-  const [overrides, setOverrides] = useState(null) // map label→data
+  const [overrides, setOverrides] = useState(null)
   const [replacing, setReplacing] = useState(null)
   const [uploadMsg, setUploadMsg] = useState({})
   const [showAddForm, setShowAddForm] = useState(false)
@@ -123,6 +123,9 @@ function GalleryTab() {
   const [addMsg, setAddMsg] = useState('')
   const [editingMeta, setEditingMeta] = useState(null)
   const [editForm, setEditForm] = useState({ label: '', sub: '' })
+  const [expandedSlides, setExpandedSlides] = useState(null)
+  const [addingSlide, setAddingSlide] = useState(null)
+  const [newSlide, setNewSlide] = useState({ badge: '' })
 
   useEffect(() => { loadGallery() }, [])
 
@@ -138,28 +141,33 @@ function GalleryTab() {
     }
   }
 
-  // Merge: _id = doc ID Firestore (immutabile), label = nome display (può essere rinominato)
   const defaultLabels = new Set(DEFAULT_GALLERY.map(g => g.label))
   const mergedDefaults = DEFAULT_GALLERY.map(g => {
     const ov = overrides?.[g.label]
     return ov
-      ? { ...g, _id: g.label, label: ov.label || g.label, url: ov.url, sub: ov.sub || g.sub, type: ov.type || 'image', hasOverride: true }
-      : { ...g, _id: g.label, url: g.img, type: 'image', hasOverride: false }
+      ? { ...g, _id: g.label, label: ov.label || g.label, url: ov.url, sub: ov.sub || g.sub, type: ov.type || 'image', images: ov.images || [], hasOverride: true }
+      : { ...g, _id: g.label, url: g.img, type: 'image', images: [], hasOverride: false }
   })
   const extraItems = Object.entries(overrides || {})
     .filter(([id]) => !defaultLabels.has(id))
-    .map(([id, data]) => ({ _id: id, label: data.label || id, sub: data.sub, url: data.url, type: data.type || 'image', hasOverride: true, isExtra: true }))
+    .map(([id, data]) => ({ _id: id, label: data.label || id, sub: data.sub, url: data.url, type: data.type || 'image', images: data.images || [], hasOverride: true, isExtra: true }))
   const displayItems = [...mergedDefaults, ...extraItems]
 
-  /* Sostituisci file */
+  /* Sostituisci immagine principale */
   const handleReplace = async (item, file) => {
     setReplacing(item._id)
     setUploadMsg(m => ({ ...m, [item._id]: '' }))
     try {
       const uploaded = await uploadToCloudinary(file)
+      const existing = overrides?.[item._id] || {}
+      const images = existing.images || []
+      const updatedImages = images.length > 0
+        ? [{ url: uploaded.url, publicId: uploaded.publicId, badge: images[0]?.badge || '' }, ...images.slice(1)]
+        : [{ url: uploaded.url, publicId: uploaded.publicId, badge: '' }]
       await setDoc(doc(db, 'gallery', item._id), {
         label: item.label, sub: item.sub,
         url: uploaded.url, publicId: uploaded.publicId, type: uploaded.type,
+        images: updatedImages,
         updatedAt: new Date().toISOString(),
       })
       setUploadMsg(m => ({ ...m, [item._id]: 'ok' }))
@@ -171,7 +179,60 @@ function GalleryTab() {
     }
   }
 
-  /* Ripristina default (elimina override) */
+  /* Aggiungi slide extra */
+  const handleAddSlide = async (item, file) => {
+    if (!file) return
+    setAddingSlide(item._id)
+    try {
+      const uploaded = await uploadToCloudinary(file)
+      const existing = overrides?.[item._id] || {}
+      const images = existing.images || (existing.url ? [{ url: existing.url, publicId: existing.publicId || '', badge: '' }] : [])
+      const updatedImages = [...images, { url: uploaded.url, publicId: uploaded.publicId, badge: newSlide.badge }]
+      await setDoc(doc(db, 'gallery', item._id), {
+        ...existing,
+        label: item.label, sub: item.sub,
+        url: existing.url || uploaded.url,
+        images: updatedImages,
+        updatedAt: new Date().toISOString(),
+      })
+      setNewSlide({ badge: '' })
+      loadGallery()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setAddingSlide(null)
+    }
+  }
+
+  /* Rimuovi slide */
+  const handleRemoveSlide = async (item, idx) => {
+    if (!confirm('Rimuovere questa immagine dallo slideshow?')) return
+    const existing = overrides?.[item._id] || {}
+    const images = [...(existing.images || [])]
+    images.splice(idx, 1)
+    const newUrl = images[0]?.url || existing.url || ''
+    await setDoc(doc(db, 'gallery', item._id), {
+      ...existing,
+      url: newUrl,
+      images,
+      updatedAt: new Date().toISOString(),
+    })
+    loadGallery()
+  }
+
+  /* Aggiorna badge di una slide */
+  const handleUpdateBadge = async (item, idx, badge) => {
+    const existing = overrides?.[item._id] || {}
+    const images = (existing.images || []).map((im, i) => i === idx ? { ...im, badge } : im)
+    await setDoc(doc(db, 'gallery', item._id), {
+      ...existing,
+      images,
+      updatedAt: new Date().toISOString(),
+    })
+    loadGallery()
+  }
+
+  /* Ripristina default */
   const handleReset = async (id) => {
     if (!confirm('Ripristinare la foto originale?')) return
     await deleteDoc(doc(db, 'gallery', id))
@@ -179,7 +240,6 @@ function GalleryTab() {
     loadGallery()
   }
 
-  /* Modifica label/sub inline */
   const startEditMeta = (item) => {
     setEditingMeta(item._id)
     setEditForm({ label: item.label, sub: item.sub || '' })
@@ -190,15 +250,12 @@ function GalleryTab() {
     try {
       const existingData = overrides?.[item._id] || {}
       if (item.isExtra && newLabel !== item.label) {
-        // extra rinominato: cancella vecchio doc ID, crea nuovo
         await deleteDoc(doc(db, 'gallery', item._id))
         await setDoc(doc(db, 'gallery', newLabel), { ...existingData, label: newLabel, sub: newSub, updatedAt: new Date().toISOString() })
       } else {
-        // default o extra senza cambio ID: aggiorna label/sub nel doc esistente
         await setDoc(doc(db, 'gallery', item._id), {
           ...existingData,
-          label: newLabel,
-          sub: newSub,
+          label: newLabel, sub: newSub,
           url: existingData.url || item.url || '',
           updatedAt: new Date().toISOString(),
         })
@@ -208,7 +265,6 @@ function GalleryTab() {
     } catch (err) { console.error(err) }
   }
 
-  /* Aggiungi elemento extra (non è un default) */
   const handleAdd = async (e) => {
     e.preventDefault()
     const file = e.target.querySelector('input[type=file]').files[0]
@@ -220,6 +276,7 @@ function GalleryTab() {
       await setDoc(doc(db, 'gallery', newItem.label), {
         label: newItem.label, sub: newItem.sub || 'Lavoro',
         url: uploaded.url, publicId: uploaded.publicId, type: uploaded.type,
+        images: [{ url: uploaded.url, publicId: uploaded.publicId, badge: '' }],
         createdAt: new Date().toISOString(),
       })
       setNewItem({ label: '', sub: '' })
@@ -258,20 +315,28 @@ function GalleryTab() {
         </form>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.25rem' }}>
         {displayItems.map(item => {
           const isReplacing = replacing === item._id
           const msg = uploadMsg[item._id]
           const isVideo = item.type === 'video'
-          const srcUrl = item.url
+          const isExpanded = expandedSlides === item._id
+          const slides = item.images || []
 
           return (
             <div key={item._id} style={{ background: '#161616', border: `1px solid ${msg === 'ok' ? 'rgba(76,175,80,0.35)' : item.hasOverride ? 'rgba(196,18,48,0.25)' : 'rgba(255,255,255,0.05)'}`, overflow: 'hidden' }}>
+              {/* Thumbnail */}
               <div style={{ position: 'relative', aspectRatio: '1' }}>
                 {isVideo
-                  ? <video src={srcUrl} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: isReplacing ? 0.4 : 1 }} muted playsInline />
-                  : <img src={srcUrl} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: isReplacing ? 0.4 : 1 }} />
+                  ? <video src={item.url} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: isReplacing ? 0.4 : 1 }} muted playsInline />
+                  : <img src={item.url} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', opacity: isReplacing ? 0.4 : 1 }} />
                 }
+                {/* slide count badge */}
+                {slides.length > 1 && (
+                  <div style={{ position: 'absolute', bottom: '0.5rem', left: '0.5rem', background: 'rgba(196,18,48,0.9)', padding: '0.15rem 0.45rem' }}>
+                    <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.5rem', fontWeight: 700, color: '#F5F0EA' }}>{slides.length} foto</span>
+                  </div>
+                )}
                 {!item.hasOverride && (
                   <div style={{ position: 'absolute', top: '0.5rem', left: '0.5rem', background: 'rgba(0,0,0,0.6)', padding: '0.15rem 0.5rem' }}>
                     <span style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.48rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.4)' }}>Default</span>
@@ -295,6 +360,8 @@ function GalleryTab() {
                   </div>
                 )}
               </div>
+
+              {/* Info + actions */}
               <div style={{ padding: '0.75rem' }}>
                 {editingMeta === item._id ? (
                   <div>
@@ -313,19 +380,69 @@ function GalleryTab() {
                     </div>
                     <div style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.56rem', color: '#C41230', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.6rem' }}>{item.sub}</div>
                     {msg === 'ok'
-                      ? <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.62rem', color: '#4caf50', margin: 0, display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Check size={11} /> Aggiornato!</p>
-                      : msg ? <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.62rem', color: '#C41230', margin: 0 }}>Errore: {msg}</p>
+                      ? <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.62rem', color: '#4caf50', margin: '0 0 0.5rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}><Check size={11} /> Aggiornato!</p>
+                      : msg ? <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.62rem', color: '#C41230', margin: '0 0 0.5rem' }}>Errore: {msg}</p>
                       : (
-                        <label style={{ ...btnSecondary, display: 'flex', cursor: isReplacing ? 'not-allowed' : 'pointer', justifyContent: 'center', padding: '0.45rem 0.75rem', opacity: isReplacing ? 0.5 : 1 }}>
-                          <Upload size={11} style={{ marginRight: '0.35rem' }} /> Sostituisci
+                        <label style={{ ...btnSecondary, display: 'flex', cursor: isReplacing ? 'not-allowed' : 'pointer', justifyContent: 'center', padding: '0.4rem 0.6rem', marginBottom: '0.4rem', opacity: isReplacing ? 0.5 : 1 }}>
+                          <Upload size={11} style={{ marginRight: '0.35rem' }} /> Sostituisci copertina
                           <input type="file" accept="image/*,video/*" style={{ display: 'none' }} disabled={isReplacing}
                             onChange={e => { if (e.target.files[0]) handleReplace(item, e.target.files[0]) }} />
                         </label>
                       )
                     }
+                    {/* Toggle slide manager */}
+                    <button onClick={() => setExpandedSlides(isExpanded ? null : item._id)}
+                      style={{ ...btnSecondary, width: '100%', justifyContent: 'center', padding: '0.4rem 0.6rem', fontSize: '0.6rem', background: isExpanded ? 'rgba(196,18,48,0.1)' : 'transparent', borderColor: isExpanded ? 'rgba(196,18,48,0.4)' : undefined }}>
+                      {isExpanded ? '▲' : '▼'} Slide ({slides.length})
+                    </button>
                   </div>
                 )}
               </div>
+
+              {/* Slide manager panel */}
+              {isExpanded && (
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '0.75rem', background: '#121212' }}>
+                  <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.58rem', fontWeight: 700, letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(245,240,234,0.4)', marginBottom: '0.75rem' }}>Immagini slideshow</p>
+
+                  {/* Existing slides */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                    {slides.map((sl, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#161616', padding: '0.4rem' }}>
+                        <img src={sl.url} alt="" style={{ width: 40, height: 40, objectFit: 'cover', flexShrink: 0 }} />
+                        <input
+                          value={sl.badge || ''}
+                          onChange={e => handleUpdateBadge(item, idx, e.target.value)}
+                          placeholder='Badge (es. "Prima")'
+                          style={{ ...inputStyle, flex: 1, fontSize: '0.6rem', padding: '0.3rem 0.4rem' }}
+                        />
+                        <button onClick={() => handleRemoveSlide(item, idx)}
+                          style={{ background: 'rgba(196,18,48,0.15)', border: 'none', color: '#C41230', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    ))}
+                    {slides.length === 0 && <p style={{ fontFamily: 'Montserrat, sans-serif', fontSize: '0.62rem', color: 'rgba(245,240,234,0.25)', margin: 0 }}>Nessuna slide aggiunta</p>}
+                  </div>
+
+                  {/* Add new slide */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    <input
+                      value={newSlide.badge}
+                      onChange={e => setNewSlide(p => ({ ...p, badge: e.target.value }))}
+                      placeholder='Badge (opzionale, es. "Dopo")'
+                      style={{ ...inputStyle, fontSize: '0.6rem', padding: '0.3rem 0.4rem' }}
+                    />
+                    <label style={{ ...btnPrimary, display: 'flex', justifyContent: 'center', cursor: addingSlide === item._id ? 'not-allowed' : 'pointer', opacity: addingSlide === item._id ? 0.5 : 1, fontSize: '0.6rem', padding: '0.4rem 0.6rem' }}>
+                      {addingSlide === item._id
+                        ? <><div style={{ width: 12, height: 12, border: '2px solid rgba(245,240,234,0.3)', borderTopColor: '#F5F0EA', borderRadius: '50%', animation: 'spin 0.8s linear infinite', marginRight: '0.4rem' }} /> Caricamento...</>
+                        : <><Plus size={11} style={{ marginRight: '0.3rem' }} /> Aggiungi foto</>
+                      }
+                      <input type="file" accept="image/*" style={{ display: 'none' }} disabled={!!addingSlide}
+                        onChange={e => { if (e.target.files[0]) handleAddSlide(item, e.target.files[0]) }} />
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}

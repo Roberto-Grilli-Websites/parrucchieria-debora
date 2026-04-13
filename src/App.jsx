@@ -199,7 +199,7 @@ const reviews = [
 ]
 
 const galleryItems = [
-  { label: 'Balayage Naturale',            sub: 'Colore',      gradient: 'linear-gradient(160deg,#2c1810 0%,#7a4a2a 50%,#c49a6c 100%)', img: `${BASE}lavori/Balayage Naturale.jpg` },
+  { label: 'Balayage Naturale',            sub: 'Colore',      gradient: 'linear-gradient(160deg,#2c1810 0%,#7a4a2a 50%,#c49a6c 100%)', img: `${BASE}lavori/portfolio1-dopo.jpg`, images: [{ src: `${BASE}lavori/portfolio1-dopo.jpg` }, { src: `${BASE}lavori/portfolio1-prima.jpg`, badge: 'Prima' }] },
   { label: 'Bob Liscio',                   sub: 'Taglio',      gradient: 'linear-gradient(160deg,#0d0d0d 0%,#2a2a2a 50%,#4a4a4a 100%)', img: `${BASE}lavori/Bob Liscio.jpg` },
   { label: 'Onde Morbide',                 sub: 'Piega',       gradient: 'linear-gradient(160deg,#1a0a05 0%,#5c3317 50%,#9b6b3a 100%)', img: `${BASE}lavori/Onde Morbide.jpg` },
   { label: 'Colorazione Ramata',           sub: 'Colore',      gradient: 'linear-gradient(160deg,#4a0a00 0%,#a03020 50%,#d4622a 100%)', img: `${BASE}lavori/kzUDHC9LPVl645UomcQxe_EnDt8DOn.jpg` },
@@ -364,7 +364,7 @@ function Stats() {
       <div style={{ position:'absolute',inset:0,background:'linear-gradient(90deg,transparent 0%,rgba(196,18,48,0.04) 50%,transparent 100%)',backgroundSize:'200% 100%',animation:'shimmerLine 4s infinite',pointerEvents:'none' }}/>
       <div style={{ maxWidth:1280,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'2rem',textAlign:'center',position:'relative' }}>
         {[
-          { n:6,  s:'+',    label:'Anni di esperienza' },
+          { n:20, s:'+',    label:'Anni di esperienza' },
           { n:500,s:'+',    label:'Clienti soddisfatte' },
           { n:100,s:'%',    label:'Passione in ogni lavoro' },
           { n:1,  s:'',     label:'Team dedicato a te' },
@@ -408,7 +408,7 @@ function About() {
           </div>
           {/* badge */}
           <div style={{ position:'absolute',bottom:'-1.5rem',right:'-1.5rem',background:'#C41230',width:110,height:110,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center',padding:'0.75rem',animation:vL?'scaleIn 0.6s 0.6s ease both':'none',opacity:vL?1:0 }}>
-            <div style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'2.2rem',fontWeight:700,color:'#F5F0EA',lineHeight:1 }}>6+</div>
+            <div style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'2.2rem',fontWeight:700,color:'#F5F0EA',lineHeight:1 }}>20+</div>
             <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.5rem',fontWeight:700,letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(245,240,234,0.85)',marginTop:'0.25rem' }}>Anni di<br/>esperienza</div>
           </div>
         </div>
@@ -423,7 +423,7 @@ function About() {
             Un team che lavora<br/><span style={{ fontStyle:'italic',color:'#C41230' }}>solo per te.</span>
           </h2>
           <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.88rem',fontWeight:300,color:'#555',lineHeight:1.95,marginBottom:'1.2rem' }}>
-            Mi chiamo <strong style={{ color:'#1C1C1C',fontWeight:600 }}>Debora Carboni</strong> e insieme al mio team mi prendo cura dei capelli delle clienti ad Ascoli Piceno da oltre 6 anni, con dedizione, passione e rispetto. Ogni persona che entra nel nostro salone trova un ambiente accogliente e professionisti pronti ad ascoltarla.
+            Mi chiamo <strong style={{ color:'#1C1C1C',fontWeight:600 }}>Debora Carboni</strong> e insieme al mio team mi prendo cura dei capelli delle clienti ad Ascoli Piceno da oltre 20 anni, con dedizione, passione e rispetto. Ogni persona che entra nel nostro salone trova un ambiente accogliente e professionisti pronti ad ascoltarla.
           </p>
           <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.88rem',fontWeight:300,color:'#555',lineHeight:1.95,marginBottom:'2.5rem' }}>
             Nessuna fretta, nessun compromesso. Usiamo prodotti selezionati di alta qualità, ci aggiorniamo costantemente sulle tecniche più innovative e — soprattutto — ascoltiamo. Perché capire cosa vuoi è il primo passo per darti ciò che meriti.
@@ -532,6 +532,7 @@ function ServiceCard({s,i}) {
 /* ─── GALLERY ────────────────────────────────── */
 function Gallery() {
   const [lightbox, setLightbox] = useState(null)
+  const [slideIdx, setSlideIdx] = useState(0)
   const [overrides, setOverrides] = useState({})
 
   useEffect(() => {
@@ -545,12 +546,23 @@ function Gallery() {
   const defaultLabels = new Set(galleryItems.map(g => g.label))
   const merged = galleryItems.map(g => {
     const ov = overrides[g.label]
-    return ov ? { ...g, img: ov.url, sub: ov.sub || g.sub, label: ov.label || g.label } : g
+    if (!ov) return g
+    const fsImages = ov.images?.map(im => ({ src: im.url, badge: im.badge || '' }))
+    return { ...g, img: ov.url, sub: ov.sub || g.sub, label: ov.label || g.label, images: fsImages || g.images }
   })
-  const extras = Object.entries(overrides).filter(([id]) => !defaultLabels.has(id)).map(([, d]) => ({
-    label: d.label, sub: d.sub, img: d.url, gradient: 'linear-gradient(160deg,#1a0800 0%,#3d1a0a 50%,#6b3316 100%)'
-  }))
+  const extras = Object.entries(overrides).filter(([id]) => !defaultLabels.has(id)).map(([, d]) => {
+    const fsImages = d.images?.map(im => ({ src: im.url, badge: im.badge || '' }))
+    return { label: d.label, sub: d.sub, img: d.url, gradient: 'linear-gradient(160deg,#1a0800 0%,#3d1a0a 50%,#6b3316 100%)', images: fsImages }
+  })
   const items = [...merged, ...extras]
+
+  const openLightbox = (g) => { setLightbox(g); setSlideIdx(0) }
+  const closeLightbox = () => setLightbox(null)
+
+  const slides = lightbox?.images || (lightbox?.img ? [{ src: lightbox.img }] : [])
+  const hasPrev = slideIdx > 0
+  const hasNext = slideIdx < slides.length - 1
+  const currentBadge = slides[slideIdx]?.badge
 
   return (
     <section id="i-miei-lavori" style={{ padding:'9rem 2rem',background:'#F5F0EA',position:'relative' }}>
@@ -558,10 +570,9 @@ function Gallery() {
         <SectionHeader tag="Portfolio" title={<>I miei lavori<br/><span style={{ fontStyle:'italic',color:'#C41230' }}>parlano per me</span></>}/>
         <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.85rem',fontWeight:300,color:'#888',maxWidth:480,margin:'-3rem auto 5rem',textAlign:'center',lineHeight:1.8 }}>
           Ogni risultato è unico. Ogni cliente è una tela bianca su cui esprimere il meglio dell'arte del capello.
-          {/* PLACEHOLDER — sostituire le tile con foto reali dei lavori */}
         </p>
         <div className="gallery-grid" style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'0.5rem' }}>
-          {items.map((g,i)=><GalleryItem key={g.label} g={g} i={i} onOpen={()=>setLightbox(g)}/>)}
+          {items.map((g,i)=><GalleryItem key={g.label} g={g} i={i} onOpen={()=>openLightbox(g)}/>)}
         </div>
         <div style={{ textAlign:'center',marginTop:'3rem' }}>
           <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.82rem',fontWeight:300,color:'#888',marginBottom:'1.5rem' }}>
@@ -575,24 +586,64 @@ function Gallery() {
         </div>
       </div>
 
-      {/* LIGHTBOX */}
+      {/* LIGHTBOX + SLIDESHOW */}
       {lightbox && (
-        <div onClick={()=>setLightbox(null)}
+        <div onClick={closeLightbox}
           style={{ position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.92)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem',animation:'scaleIn 0.3s ease',cursor:'zoom-out' }}>
-          <button onClick={()=>setLightbox(null)} style={{ position:'absolute',top:'1.5rem',right:'1.5rem',background:'none',border:'none',color:'#F5F0EA',cursor:'pointer',padding:'0.5rem' }}><X size={28}/></button>
-          <div style={{ width:'min(90vw,500px)',aspectRatio:'3/4',background:lightbox.gradient,position:'relative',overflow:'hidden',animation:'scaleIn 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
-            {lightbox.img
-              ? <img src={lightbox.img} alt={lightbox.label} style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover' }}/>
-              : <div style={{ position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'1rem' }}>
-                  <Scissors size={48} color="rgba(245,240,234,0.15)" strokeWidth={0.8}/>
+          <button onClick={closeLightbox} style={{ position:'absolute',top:'1.5rem',right:'1.5rem',background:'none',border:'none',color:'#F5F0EA',cursor:'pointer',padding:'0.5rem' }}><X size={28}/></button>
+
+          <div style={{ position:'relative',width:'min(90vw,500px)',aspectRatio:'3/4' }} onClick={e=>e.stopPropagation()}>
+            {/* image */}
+            <div style={{ width:'100%',height:'100%',background:lightbox.gradient,position:'relative',overflow:'hidden',animation:'scaleIn 0.4s cubic-bezier(0.16,1,0.3,1)' }}>
+              {slides.length > 0
+                ? <img key={slideIdx} src={slides[slideIdx].src} alt={lightbox.label} style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',animation:'scaleIn 0.3s ease' }}/>
+                : <div style={{ position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center' }}><Scissors size={48} color="rgba(245,240,234,0.15)" strokeWidth={0.8}/></div>
+              }
+
+              {/* badge "Prima" / "Dopo" */}
+              {currentBadge && (
+                <div style={{ position:'absolute',bottom:'1.2rem',right:'1.2rem',background:'rgba(14,14,14,0.72)',backdropFilter:'blur(6px)',border:'1px solid rgba(196,18,48,0.5)',padding:'0.35rem 0.85rem' }}>
+                  <span style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.1rem',fontStyle:'italic',fontWeight:400,color:'#F5F0EA',letterSpacing:'0.04em' }}>{currentBadge}</span>
                 </div>
-            }
-            <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'2rem',background:'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
-              <div style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.6rem',fontStyle:'italic',color:'#F5F0EA' }}>{lightbox.label}</div>
-              <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C41230',marginTop:'0.3rem' }}>{lightbox.sub}</div>
+              )}
+
+              {/* caption */}
+              <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'2rem',background:'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
+                <div style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.6rem',fontStyle:'italic',color:'#F5F0EA' }}>{lightbox.label}</div>
+                <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C41230',marginTop:'0.3rem' }}>{lightbox.sub}</div>
+              </div>
             </div>
+
+            {/* prev / next arrows */}
+            {hasPrev && (
+              <button onClick={()=>setSlideIdx(i=>i-1)}
+                style={{ position:'absolute',left:'-3.5rem',top:'50%',transform:'translateY(-50%)',background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'border-color 0.2s,background 0.2s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.background='rgba(196,18,48,0.15)'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.25)';e.currentTarget.style.background='none'}}
+              >‹</button>
+            )}
+            {hasNext && (
+              <button onClick={()=>setSlideIdx(i=>i+1)}
+                style={{ position:'absolute',right:'-3.5rem',top:'50%',transform:'translateY(-50%)',background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.4rem',transition:'border-color 0.2s,background 0.2s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.background='rgba(196,18,48,0.15)'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.25)';e.currentTarget.style.background='none'}}
+              >›</button>
+            )}
           </div>
-          <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.65rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(245,240,234,0.35)',marginTop:'1.25rem' }}>Tocca per chiudere</p>
+
+          {/* dots */}
+          {slides.length > 1 && (
+            <div style={{ display:'flex',gap:'0.5rem',marginTop:'1.25rem' }} onClick={e=>e.stopPropagation()}>
+              {slides.map((_,i)=>(
+                <button key={i} onClick={()=>setSlideIdx(i)}
+                  style={{ width:i===slideIdx?20:7,height:7,background:i===slideIdx?'#C41230':'rgba(245,240,234,0.25)',border:'none',cursor:'pointer',transition:'all 0.3s ease',padding:0 }}/>
+              ))}
+            </div>
+          )}
+
+          <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.65rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(245,240,234,0.35)',marginTop:'0.75rem' }}>
+            {slides.length > 1 ? 'Scorri per vedere altri scatti · tocca fuori per chiudere' : 'Tocca per chiudere'}
+          </p>
         </div>
       )}
     </section>
@@ -786,7 +837,7 @@ function Footer() {
           <div>
             <img src={`${BASE}symbol.svg`} alt="Parrucchieria Debora" style={{ height:72,width:'auto',marginBottom:'1.25rem',opacity:0.9 }}/>
             <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:300,color:'rgba(245,240,234,0.35)',lineHeight:1.85,marginBottom:'1.25rem' }}>
-              Il tuo salone di fiducia ad Ascoli Piceno da oltre 6 anni.
+              Il tuo salone di fiducia ad Ascoli Piceno da oltre 20 anni.
             </p>
             <a href={WA_LINK} target="_blank" rel="noreferrer"
               style={{ display:'inline-flex',alignItems:'center',gap:'0.5rem',background:'#25D366',color:'#fff',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',padding:'0.6rem 1.2rem',textDecoration:'none',transition:'all 0.3s' }}
