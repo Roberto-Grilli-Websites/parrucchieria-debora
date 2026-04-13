@@ -337,7 +337,7 @@ function Hero() {
           </div>
 
           <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.9rem',fontWeight:300,color:'rgba(245,240,234,0.65)',lineHeight:1.95,maxWidth:500,marginBottom:'3rem',animation:'fadeUp 0.9s 0.4s ease both' }}>
-            Debora Carboni e il suo team ti accolgono nel salone di Via Celso Ulpiani ad Ascoli Piceno con la cura e l'attenzione che merita ogni cliente. Ogni visita è un'esperienza su misura, pensata esclusivamente per te.
+            Debora Carboni e il suo team ti accolgono con la cura e l'attenzione che merita ogni cliente. Ogni visita è un'esperienza su misura, pensata esclusivamente per te.
           </p>
 
           <div style={{ display:'flex',gap:'1rem',flexWrap:'wrap',animation:'fadeUp 0.9s 0.55s ease both' }}>
@@ -568,8 +568,7 @@ function Gallery() {
     const ov = overrides[g.label]
     if (!ov) return g
     const fsImages = ov.images?.map(im => ({ src: im.url, badge: im.badge || '' }))
-    // Se l'item ha immagini hardcoded (es. portfolio con Prima/Dopo), mantieni il thumbnail hardcoded
-    const img = g.images ? g.img : (ov.url || g.img)
+    const img = ov.url || g.img
     return { ...g, img, sub: ov.sub || g.sub, label: ov.label || g.label, images: fsImages || g.images }
   })
   // Solo extras con adminAdded:true evitano di mostrare voci Firestore obsolete
