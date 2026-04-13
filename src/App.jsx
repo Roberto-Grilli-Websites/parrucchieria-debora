@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import {
   Scissors, Star, MapPin, Phone, Clock,
-  Menu, X, Sparkles, Award, Heart, Zap, Check,
+  ChevronDown, Menu, X, Sparkles, Award, Heart, Zap, Check,
   MessageCircle, ZoomIn
 } from 'lucide-react'
 import { collection, getDocs } from 'firebase/firestore'
@@ -362,6 +362,10 @@ function Hero() {
         </div>
       </div>
 
+      <div style={{ position:'absolute',bottom:'2rem',left:'50%',transform:'translateX(-50%)',display:'flex',flexDirection:'column',alignItems:'center',gap:'0.4rem',animation:'bob 2s infinite',zIndex:2 }}>
+        <span style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.55rem',letterSpacing:'0.3em',textTransform:'uppercase',color:'rgba(245,240,234,0.25)' }}>Scorri</span>
+        <ChevronDown size={16} color="rgba(196,18,48,0.7)"/>
+      </div>
     </section>
   )
 }
@@ -607,61 +611,56 @@ function Gallery() {
           style={{ position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.92)',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'2rem',animation:'scaleIn 0.3s ease',cursor:'zoom-out' }}>
           <button onClick={closeLightbox} style={{ position:'absolute',top:'1.5rem',right:'1.5rem',background:'none',border:'none',color:'#F5F0EA',cursor:'pointer',padding:'0.5rem' }}><X size={28}/></button>
 
-          <div style={{ position:'relative',display:'flex',alignItems:'center',gap:'1rem' }} onClick={e=>e.stopPropagation()}>
-            {/* prev arrow */}
-            {hasPrev && (
-              <button onClick={()=>setSlideIdx(i=>i-1)}
-                style={{ flexShrink:0,background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.4rem',transition:'border-color 0.2s,background 0.2s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.background='rgba(196,18,48,0.15)'}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.25)';e.currentTarget.style.background='none'}}
-              >‹</button>
-            )}
-
+          {/* image + arrows overlay */}
+          <div style={{ position:'relative',display:'inline-flex',animation:'scaleIn 0.4s cubic-bezier(0.16,1,0.3,1)' }} onClick={e=>e.stopPropagation()}>
             {/* image */}
-            <div style={{ position:'relative',overflow:'hidden',background:lightbox.gradient,animation:'scaleIn 0.4s cubic-bezier(0.16,1,0.3,1)',maxWidth:'min(80vw,600px)',maxHeight:'80vh',display:'flex' }}>
+            <div style={{ position:'relative',overflow:'hidden',background:lightbox.gradient,display:'flex' }}>
               {slides.length > 0
                 ? <img key={slideIdx} src={slides[slideIdx].src} alt={lightbox.label}
-                    style={{ display:'block',maxWidth:'min(80vw,600px)',maxHeight:'80vh',width:'auto',height:'auto',objectFit:'contain',animation:'scaleIn 0.3s ease' }}/>
+                    style={{ display:'block',maxWidth:'min(88vw,620px)',maxHeight:'80vh',width:'auto',height:'auto',objectFit:'contain',animation:'scaleIn 0.3s ease' }}/>
                 : <div style={{ width:300,height:400,display:'flex',alignItems:'center',justifyContent:'center' }}><Scissors size={48} color="rgba(245,240,234,0.15)" strokeWidth={0.8}/></div>
               }
 
+              {/* frecce sovrapposte */}
+              {hasPrev && (
+                <button onClick={()=>setSlideIdx(i=>i-1)}
+                  style={{ position:'absolute',left:'0.6rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,0.45)',backdropFilter:'blur(4px)',border:'1px solid rgba(245,240,234,0.2)',color:'#F5F0EA',width:38,height:38,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.3rem',transition:'background 0.2s,border-color 0.2s',zIndex:2 }}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(196,18,48,0.6)';e.currentTarget.style.borderColor='#C41230'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(0,0,0,0.45)';e.currentTarget.style.borderColor='rgba(245,240,234,0.2)'}}
+                >‹</button>
+              )}
+              {hasNext && (
+                <button onClick={()=>setSlideIdx(i=>i+1)}
+                  style={{ position:'absolute',right:'0.6rem',top:'50%',transform:'translateY(-50%)',background:'rgba(0,0,0,0.45)',backdropFilter:'blur(4px)',border:'1px solid rgba(245,240,234,0.2)',color:'#F5F0EA',width:38,height:38,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.3rem',transition:'background 0.2s,border-color 0.2s',zIndex:2 }}
+                  onMouseEnter={e=>{e.currentTarget.style.background='rgba(196,18,48,0.6)';e.currentTarget.style.borderColor='#C41230'}}
+                  onMouseLeave={e=>{e.currentTarget.style.background='rgba(0,0,0,0.45)';e.currentTarget.style.borderColor='rgba(245,240,234,0.2)'}}
+                >›</button>
+              )}
+
               {/* badge "Prima" */}
               {currentBadge && (
-                <div style={{ position:'absolute',bottom:'1.2rem',right:'1.2rem',background:'rgba(14,14,14,0.72)',backdropFilter:'blur(6px)',border:'1px solid rgba(196,18,48,0.5)',padding:'0.35rem 0.85rem' }}>
+                <div style={{ position:'absolute',bottom:'1.2rem',right:'1.2rem',background:'rgba(14,14,14,0.72)',backdropFilter:'blur(6px)',border:'1px solid rgba(196,18,48,0.5)',padding:'0.35rem 0.85rem',zIndex:2 }}>
                   <span style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.1rem',fontStyle:'italic',fontWeight:400,color:'#F5F0EA',letterSpacing:'0.04em' }}>{currentBadge}</span>
                 </div>
               )}
 
               {/* caption */}
-              <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'1.25rem 1.5rem',background:'linear-gradient(to top,rgba(0,0,0,0.8),transparent)' }}>
+              <div style={{ position:'absolute',bottom:0,left:0,right:0,padding:'1.25rem 1.5rem',background:'linear-gradient(to top,rgba(0,0,0,0.8),transparent)',zIndex:1 }}>
                 <div style={{ fontFamily:'"Cormorant Garamond",serif',fontSize:'1.4rem',fontStyle:'italic',color:'#F5F0EA' }}>{lightbox.label}</div>
                 <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C41230',marginTop:'0.2rem' }}>{lightbox.sub}</div>
               </div>
             </div>
-
-            {/* next arrow */}
-            {hasNext && (
-              <button onClick={()=>setSlideIdx(i=>i+1)}
-                style={{ flexShrink:0,background:'none',border:'1px solid rgba(245,240,234,0.25)',color:'#F5F0EA',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:'1.4rem',transition:'border-color 0.2s,background 0.2s' }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.background='rgba(196,18,48,0.15)'}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.25)';e.currentTarget.style.background='none'}}
-              >›</button>
-            )}
           </div>
 
           {/* dots */}
           {slides.length > 1 && (
-            <div style={{ display:'flex',gap:'0.5rem',marginTop:'1.25rem' }} onClick={e=>e.stopPropagation()}>
+            <div style={{ display:'flex',gap:'0.5rem',marginTop:'1rem' }} onClick={e=>e.stopPropagation()}>
               {slides.map((_,i)=>(
                 <button key={i} onClick={()=>setSlideIdx(i)}
                   style={{ width:i===slideIdx?20:7,height:7,background:i===slideIdx?'#C41230':'rgba(245,240,234,0.25)',border:'none',cursor:'pointer',transition:'all 0.3s ease',padding:0 }}/>
               ))}
             </div>
           )}
-
-          <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.65rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(245,240,234,0.35)',marginTop:'0.75rem' }}>
-            {slides.length > 1 ? 'Scorri per vedere altri scatti · tocca fuori per chiudere' : 'Tocca per chiudere'}
-          </p>
         </div>
       )}
     </section>
