@@ -12,7 +12,7 @@ import AdminDashboard from './pages/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 
 /* ─── CONSTANTS ─────────────────────────────── */
-const WA_LINK = "https://wa.me/390736342914?text=Ciao%20Debora!%20Vorrei%20prenotare%20un%20appuntamento%20%F0%9F%92%87%E2%80%8D%E2%99%80%EF%B8%8F"
+const WA_LINK = "https://wa.me/393472113803?text=Ciao%20Debora!%20Vorrei%20prenotare%20un%20appuntamento%20%F0%9F%92%87%E2%80%8D%E2%99%80%EF%B8%8F"
 const PHONE   = "tel:+390736342914"
 const BASE    = import.meta.env.BASE_URL
 
@@ -804,26 +804,7 @@ const ORARI_VERSION = 2
 const DEFAULT_ORARI = "Lunedì: chiuso\nMartedì: 8:30 – 12:30 / 15:30 – 19:30\nMercoledì: 8:30 – 17:00\nGiovedì: 8:30 – 12:30 / 15:30 – 19:30\nVenerdì: 8:30 – 19:00\nSabato: 8:30 – 19:00\nDomenica: chiuso"
 
 /* ─── CONTACT ────────────────────────────────── */
-function Contact() {
-  const [info, setInfo] = useState({
-    indirizzo: "Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)",
-    telefono: "0736 342914",
-    orari: DEFAULT_ORARI,
-  })
-
-  useEffect(() => {
-    getDocs(collection(db, 'info')).then(snap => {
-      const d = snap.docs.find(d => d.id === 'principale')
-      if (d) {
-        const data = d.data()
-        setInfo(prev => ({
-          ...prev,
-          ...data,
-          orari: (data.orariVersion >= ORARI_VERSION) ? data.orari : DEFAULT_ORARI,
-        }))
-      }
-    }).catch(() => {})
-  }, [])
+function Contact({ info }) {
 
   return (
     <section id="contatti" style={{ padding:'9rem 2rem',background:'#F5F0EA' }}>
@@ -877,17 +858,8 @@ function InfoCard({icon:Icon,label,val,idx}) {
 }
 
 /* ─── FOOTER ─────────────────────────────────── */
-function Footer() {
-  const [orari, setOrari] = useState(DEFAULT_ORARI)
-  useEffect(() => {
-    getDocs(collection(db, 'info')).then(snap => {
-      const d = snap.docs.find(d => d.id === 'principale')
-      if (d) {
-        const data = d.data()
-        if (data.orariVersion >= ORARI_VERSION && data.orari) setOrari(data.orari)
-      }
-    }).catch(() => {})
-  }, [])
+function Footer({ info }) {
+  const orari = info?.orari || DEFAULT_ORARI
   const orariRows = orari.split('\n').map(line => {
     const idx = line.indexOf(':')
     return idx > -1 ? [line.slice(0, idx).trim(), line.slice(idx + 1).trim()] : [line, '']
@@ -922,9 +894,8 @@ function Footer() {
           </div>
           <div>
             <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',color:'#C41230',marginBottom:'1.25rem' }}>Dove siamo</div>
-            <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:300,color:'rgba(245,240,234,0.4)',lineHeight:1.85,marginBottom:'0.35rem' }}>Via Celso Ulpiani, 15</div>
-            <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:300,color:'rgba(245,240,234,0.4)',lineHeight:1.85,marginBottom:'0.35rem' }}>63100 Ascoli Piceno (AP)</div>
-            <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:400,color:'rgba(245,240,234,0.6)',marginBottom:'1.25rem' }}>0736 342914</div>
+            <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:300,color:'rgba(245,240,234,0.4)',lineHeight:1.85,marginBottom:'0.35rem',whiteSpace:'pre-line' }}>{info?.indirizzo || 'Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)'}</div>
+            <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:400,color:'rgba(245,240,234,0.6)',marginBottom:'1.25rem' }}>{info?.telefono || '0736 342914'}</div>
             <a href="#contatti"
               style={{ display:'inline-block',background:'transparent',color:'#C41230',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.6rem',letterSpacing:'0.18em',textTransform:'uppercase',padding:'0.6rem 1.2rem',textDecoration:'none',border:'1.5px solid rgba(196,18,48,0.4)',transition:'all 0.3s' }}
               onMouseEnter={e=>{e.currentTarget.style.background='rgba(196,18,48,0.1)'}}
@@ -964,7 +935,29 @@ function SectionHeader({ tag, title, dark = false }) {
 }
 
 /* ─── HOME ───────────────────────────────────── */
+const DEFAULT_INFO = {
+  indirizzo: "Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)",
+  telefono: "0736 342914",
+  orari: DEFAULT_ORARI,
+}
+
 function Home() {
+  const [info, setInfo] = useState(DEFAULT_INFO)
+
+  useEffect(() => {
+    getDocs(collection(db, 'info')).then(snap => {
+      const d = snap.docs.find(d => d.id === 'principale')
+      if (d) {
+        const data = d.data()
+        setInfo(prev => ({
+          ...prev,
+          ...data,
+          orari: (data.orariVersion >= ORARI_VERSION) ? data.orari : DEFAULT_ORARI,
+        }))
+      }
+    }).catch(() => {})
+  }, [])
+
   return (
     <>
       <Navbar/>
@@ -975,8 +968,8 @@ function Home() {
       <Gallery/>
       <Reviews/>
       <CTABanner/>
-      <Contact/>
-      <Footer/>
+      <Contact info={info}/>
+      <Footer info={info}/>
     </>
   )
 }
