@@ -176,7 +176,6 @@ const services = [
   { cat:'Colore',      icon:'🎨', name:'Bagno colore',                desc:'Trattamento colorante per ravvivare e uniformare il colore su tutta la lunghezza.',                       price:'€23' },
   { cat:'Colore',      icon:'✨', name:'Tonalizzante',                desc:'Trattamento tonalizzante per riflessi e luminosità.',                                                      price:'€10' },
   { cat:'Colore',      icon:'✨', name:'Meches',                      desc:'Schiariture classiche con stagnola per riflessi naturali.',                                                price:'€35' },
-  { cat:'Colore',      icon:'✨', name:'Ritocco meches',              desc:'Ritocco delle schiariture su ricrescita.',                                                                  price:'€20' },
   { cat:'Colore',      icon:'🌈', name:'Contouring + tonalizzante',   desc:'Tecnica di contouring colore con finitura tonalizzante.',                                                  price:'€15' },
   { cat:'Colore',      icon:'☀', name:'Degradé',                     desc:'Colorazione a degradé per un effetto naturale e sfumato.',                                                 price:'€45' },
   { cat:'Colore',      icon:'🌟', name:'Voilage',                     desc:'Tecnica di schiariture a velo per un effetto luminoso e naturale.',                                        price:'€50' },
@@ -553,7 +552,9 @@ function Gallery() {
     const ov = overrides[g.label]
     if (!ov) return g
     const fsImages = ov.images?.map(im => ({ src: im.url, badge: im.badge || '' }))
-    return { ...g, img: ov.url, sub: ov.sub || g.sub, label: ov.label || g.label, images: fsImages || g.images }
+    // Se l'item ha immagini hardcoded (es. portfolio con Prima/Dopo), mantieni il thumbnail hardcoded
+    const img = g.images ? g.img : (ov.url || g.img)
+    return { ...g, img, sub: ov.sub || g.sub, label: ov.label || g.label, images: fsImages || g.images }
   })
   const extras = Object.entries(overrides).filter(([id]) => !defaultLabels.has(id)).map(([, d]) => {
     const fsImages = d.images?.map(im => ({ src: im.url, badge: im.badge || '' }))
