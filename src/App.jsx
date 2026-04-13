@@ -876,6 +876,22 @@ function Footer() {
               onMouseEnter={e=>e.currentTarget.style.background='#9E0E26'}
               onMouseLeave={e=>e.currentTarget.style.background='#C41230'}
             ><Phone size={12}/> Chiama</a>
+            <div style={{ display:'flex',gap:'0.75rem',marginTop:'1.25rem' }}>
+              <a href="https://www.facebook.com/profile.php?id=100063668227633&sk=photos" target="_blank" rel="noreferrer"
+                style={{ display:'inline-flex',alignItems:'center',justifyContent:'center',width:34,height:34,border:'1px solid rgba(245,240,234,0.15)',color:'rgba(245,240,234,0.45)',textDecoration:'none',transition:'all 0.3s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.color='#C41230'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.15)';e.currentTarget.style.color='rgba(245,240,234,0.45)'}}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              </a>
+              <a href="https://www.instagram.com/debora.carboni.83/" target="_blank" rel="noreferrer"
+                style={{ display:'inline-flex',alignItems:'center',justifyContent:'center',width:34,height:34,border:'1px solid rgba(245,240,234,0.15)',color:'rgba(245,240,234,0.45)',textDecoration:'none',transition:'all 0.3s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='#C41230';e.currentTarget.style.color='#C41230'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.15)';e.currentTarget.style.color='rgba(245,240,234,0.45)'}}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </a>
+            </div>
           </div>
           <div>
             <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',color:'#C41230',marginBottom:'1.25rem' }}>Servizi</div>
