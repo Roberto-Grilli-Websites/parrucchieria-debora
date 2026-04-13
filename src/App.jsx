@@ -823,7 +823,7 @@ function Contact() {
 
           {/* Info cards */}
           <InfoCard icon={MapPin} label="Indirizzo"          val={info.indirizzo}  idx={0}/>
-          <InfoCard icon={Phone}  label="Telefono & WhatsApp" val={info.telefono}   idx={1}/>
+          <InfoCard icon={Phone}  label="Telefono" val={info.telefono}   idx={1}/>
           <InfoCard icon={Clock}  label="Orari"              val={info.orari}      idx={2}/>
         </div>
 
