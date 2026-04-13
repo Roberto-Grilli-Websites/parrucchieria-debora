@@ -298,7 +298,7 @@ function Hero() {
     <section id="home" style={{ minHeight:'100vh',position:'relative',display:'flex',alignItems:'center',background:'#0e0e0e',overflow:'hidden' }}>
 
       {/* VIDEO BACKGROUND */}
-      <video autoPlay muted loop playsInline
+      <video key={heroSrc} autoPlay muted loop playsInline
         style={{ position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',transform:`translateY(${scrollY*0.25}px) scale(1.1)`,transition:'transform 0.1s linear',pointerEvents:'none' }}>
         <source src={heroSrc} type="video/mp4"/>
       </video>

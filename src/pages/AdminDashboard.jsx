@@ -698,6 +698,7 @@ function InfoTab() {
       setInfo(newInfo)
       await setDoc(doc(db, 'info', INFO_ID), newInfo)
       setMediaMsg(m => ({ ...m, [field]: 'ok' }))
+      setTimeout(() => setMediaMsg(m => ({ ...m, [field]: '' })), 3000)
     } catch (err) {
       setMediaMsg(m => ({ ...m, [field]: err.message }))
     } finally {
