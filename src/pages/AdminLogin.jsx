@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth'
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../firebase'
 import { useNavigate } from 'react-router-dom'
 import { Scissors } from 'lucide-react'
@@ -14,13 +14,10 @@ export default function AdminLogin() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    setLoading(true)
-    getRedirectResult(auth)
-      .then(result => {
-        if (result?.user) navigate('/admin/dashboard')
-      })
-      .catch(() => setError('Accesso con Google non riuscito.'))
-      .finally(() => setLoading(false))
+    const unsub = onAuthStateChanged(auth, user => {
+      if (user) navigate('/admin/dashboard')
+    })
+    return unsub
   }, [navigate])
 
   const handleLogin = async (e) => {
@@ -31,14 +28,31 @@ export default function AdminLogin() {
       await signInWithEmailAndPassword(auth, email, password)
       navigate('/admin/dashboard')
     } catch (err) {
-      setError('Email o password errati.')
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+        setError('Email o password errati.')
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Troppi tentativi. Riprova tra qualche minuto.')
+      } else {
+        setError('Errore di accesso. Riprova.')
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGoogle = () => {
-    signInWithRedirect(auth, provider)
+  const handleGoogle = async () => {
+    setError('')
+    setLoading(true)
+    try {
+      await signInWithPopup(auth, provider)
+      navigate('/admin/dashboard')
+    } catch (err) {
+      if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+        setError('Accesso con Google non riuscito. Riprova.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
