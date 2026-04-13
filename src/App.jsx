@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import {
   Scissors, Star, MapPin, Phone, Clock,
-  ChevronDown, Menu, X, Sparkles, Award, Heart, Zap, Check,
+  Menu, X, Sparkles, Award, Heart, Zap, Check,
   MessageCircle, ZoomIn
 } from 'lucide-react'
 import { collection, getDocs } from 'firebase/firestore'
@@ -362,10 +362,6 @@ function Hero() {
         </div>
       </div>
 
-      <div style={{ position:'absolute',bottom:'2rem',left:'50%',transform:'translateX(-50%)',display:'flex',flexDirection:'column',alignItems:'center',gap:'0.4rem',animation:'bob 2s infinite',zIndex:2 }}>
-        <span style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.55rem',letterSpacing:'0.3em',textTransform:'uppercase',color:'rgba(245,240,234,0.25)' }}>Scorri</span>
-        <ChevronDown size={16} color="rgba(196,18,48,0.7)"/>
-      </div>
     </section>
   )
 }
