@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import {
   Scissors, Star, MapPin, Phone, Clock,
@@ -12,21 +12,24 @@ import AdminDashboard from './pages/AdminDashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 
 /* ─── CONSTANTS ─────────────────────────────── */
-const WA_LINK = "https://wa.me/393472113803?text=Ciao%20Debora!%20Vorrei%20prenotare%20un%20appuntamento%20%F0%9F%92%87%E2%80%8D%E2%99%80%EF%B8%8F"
-const PHONE   = "tel:+390736342914"
-const BASE    = import.meta.env.BASE_URL
+const BASE = import.meta.env.BASE_URL
+const WA_TEXT = "Ciao%20Debora!%20Vorrei%20prenotare%20un%20appuntamento%20%F0%9F%92%87%E2%80%8D%E2%99%80%EF%B8%8F"
+const DEFAULT_WA  = "3472113803"
+const DEFAULT_TEL = "0736342914"
 
-/* ─── HOOK: site info da Firestore ──────────── */
-function useSiteInfo() {
-  const [info, setInfo] = useState({})
-  useEffect(() => {
-    getDocs(collection(db, 'info')).then(snap => {
-      const d = snap.docs.find(d => d.id === 'principale')
-      if (d) setInfo(d.data())
-    }).catch(() => {})
-  }, [])
-  return info
+function buildWaLink(num) {
+  const clean = (num || DEFAULT_WA).replace(/\s+/g, '').replace(/^\+39/, '').replace(/^0039/, '')
+  return `https://wa.me/39${clean}?text=${WA_TEXT}`
 }
+function buildPhoneLink(num) {
+  const clean = (num || DEFAULT_TEL).replace(/\s+/g, '').replace(/^\+39/, '').replace(/^0039/, '')
+  return `tel:+39${clean}`
+}
+
+/* ─── CONTEXT ────────────────────────────────── */
+const InfoCtx = createContext(null)
+function useInfo() { return useContext(InfoCtx) }
+
 
 /* ─── HOOK: visibility ───────────────────────── */
 function useVisible(threshold = 0.12) {
@@ -241,6 +244,7 @@ function Navbar() {
   const [open, setOpen] = useState(false)
   const scrollY = useScrollY()
   const scrolled = scrollY > 50
+  const info = useInfo()
   return (
     <nav style={{ position:'fixed',top:0,left:0,right:0,zIndex:1000, background:scrolled?'rgba(14,14,14,0.97)':'transparent', backdropFilter:scrolled?'blur(16px)':'none', borderBottom:scrolled?'1px solid rgba(196,18,48,0.18)':'none', padding:scrolled?'0.9rem 0':'1.5rem 0', transition:'all 0.45s ease' }}>
       <div style={{ maxWidth:1280,margin:'0 auto',padding:'0 2rem',display:'flex',alignItems:'center',justifyContent:'space-between' }}>
@@ -256,7 +260,7 @@ function Navbar() {
               onMouseLeave={e=>e.currentTarget.style.color='#F5F0EA'}
             >{label}</button>
           ))}
-          <a href={WA_LINK} target="_blank" rel="noreferrer"
+          <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
             style={{ display:'inline-flex',alignItems:'center',gap:'0.5rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:600,fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',padding:'0.65rem 1.4rem',textDecoration:'none',transition:'all 0.3s ease',animation:'pulseRed 3s infinite' }}
             onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-2px)'}}
             onMouseLeave={e=>{e.currentTarget.style.background='#C41230';e.currentTarget.style.transform='translateY(0)'}}
@@ -275,7 +279,7 @@ function Navbar() {
               style={{ display:'block',width:'100%',textAlign:'left',padding:'0.85rem 0',borderBottom:'1px solid rgba(255,255,255,0.05)',borderLeft:'none',borderRight:'none',borderTop:'none',fontFamily:'Montserrat,sans-serif',fontSize:'0.7rem',fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',color:'#F5F0EA',background:'none',cursor:'pointer' }}
             >{label}</button>
           ))}
-          <a href={WA_LINK} target="_blank" rel="noreferrer" onClick={()=>setOpen(false)}
+          <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer" onClick={()=>setOpen(false)}
             style={{ display:'flex',alignItems:'center',gap:'0.5rem',marginTop:'1rem',padding:'0.85rem 0',fontFamily:'Montserrat,sans-serif',fontSize:'0.7rem',fontWeight:700,letterSpacing:'0.2em',textTransform:'uppercase',color:'#C41230',textDecoration:'none' }}
           ><MessageCircle size={15}/> Prenota su WhatsApp</a>
         </div>
@@ -288,8 +292,8 @@ function Navbar() {
 /* ─── HERO ───────────────────────────────────── */
 function Hero() {
   const scrollY = useScrollY()
-  const info = useSiteInfo()
-  const heroSrc = info.heroVideo || `${BASE}hero.mp4`
+  const info = useInfo()
+  const heroSrc = info?.heroVideo || `${BASE}hero.mp4`
   return (
     <section id="home" style={{ minHeight:'100vh',position:'relative',display:'flex',alignItems:'center',background:'#0e0e0e',overflow:'hidden' }}>
 
@@ -337,14 +341,14 @@ function Hero() {
           </p>
 
           <div style={{ display:'flex',gap:'1rem',flexWrap:'wrap',animation:'fadeUp 0.9s 0.55s ease both' }}>
-            <a href={WA_LINK} target="_blank" rel="noreferrer"
+            <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
               style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'1rem 2.4rem',textDecoration:'none',transition:'all 0.35s ease' }}
               onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 12px 35px rgba(196,18,48,0.45)'}}
               onMouseLeave={e=>{e.currentTarget.style.background='#C41230';e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='none'}}
             >
               <MessageCircle size={15}/> Scrivimi su WhatsApp
             </a>
-            <a href={PHONE}
+            <a href={buildPhoneLink(info?.telefono)}
               style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'transparent',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:600,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'1rem 2.2rem',textDecoration:'none',border:'1.5px solid rgba(245,240,234,0.35)',transition:'all 0.35s ease' }}
               onMouseEnter={e=>{e.currentTarget.style.borderColor='#F5F0EA';e.currentTarget.style.background='rgba(245,240,234,0.06)'}}
               onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.35)';e.currentTarget.style.background='transparent'}}
@@ -399,8 +403,8 @@ function Stats() {
 function About() {
   const [rL,vL] = useVisible()
   const [rR,vR] = useVisible()
-  const info = useSiteInfo()
-  const staffSrc = info.staffPhoto || `${BASE}staff.jpg`
+  const info = useInfo()
+  const staffSrc = info?.staffPhoto || `${BASE}staff.jpg`
   return (
     <section id="chi-sono" style={{ padding:'9rem 2rem',background:'#F5F0EA',overflow:'hidden' }}>
       <div style={{ maxWidth:1280,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:'6rem',alignItems:'center' }}>
@@ -452,7 +456,7 @@ function About() {
               </div>
             ))}
           </div>
-          <a href={WA_LINK} target="_blank" rel="noreferrer"
+          <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
             style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.9rem 2.2rem',textDecoration:'none',transition:'all 0.35s ease' }}
             onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 10px 28px rgba(196,18,48,0.4)'}}
             onMouseLeave={e=>{e.currentTarget.style.background='#C41230';e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}
@@ -467,6 +471,7 @@ function About() {
 
 /* ─── SERVICES ───────────────────────────────── */
 function Services() {
+  const info = useInfo()
   const [active, setActive] = useState('Tutti')
   const [overrides, setOverrides] = useState({})
 
@@ -506,7 +511,7 @@ function Services() {
         </div>
 
         <div style={{ textAlign:'center',marginTop:'4rem' }}>
-          <a href={WA_LINK} target="_blank" rel="noreferrer"
+          <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
             style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.9rem 2.4rem',textDecoration:'none',transition:'all 0.35s ease' }}
             onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-3px)'}}
             onMouseLeave={e=>{e.currentTarget.style.background='#C41230';e.currentTarget.style.transform='none'}}
@@ -545,6 +550,7 @@ function ServiceCard({s,i}) {
 
 /* ─── GALLERY ────────────────────────────────── */
 function Gallery() {
+  const info = useInfo()
   const [lightbox, setLightbox] = useState(null)
   const [slideIdx, setSlideIdx] = useState(0)
   const [overrides, setOverrides] = useState({})
@@ -597,7 +603,7 @@ function Gallery() {
           <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.82rem',fontWeight:300,color:'#888',marginBottom:'1.5rem' }}>
             Vuoi un look come questi? Contattaci per prenotare la tua seduta.
           </p>
-          <a href={WA_LINK} target="_blank" rel="noreferrer"
+          <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
             style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.9rem 2.4rem',textDecoration:'none',transition:'all 0.35s ease' }}
             onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-3px)'}}
             onMouseLeave={e=>{e.currentTarget.style.background='#C41230';e.currentTarget.style.transform='none'}}
@@ -769,6 +775,7 @@ function ReviewCard({r,i,active}) {
 
 /* ─── CTA BANNER ─────────────────────────────── */
 function CTABanner() {
+  const info = useInfo()
   const [ref,visible] = useVisible(0.2)
   return (
     <section style={{ padding:'7rem 2rem',background:'#C41230',position:'relative',overflow:'hidden',textAlign:'center' }}>
@@ -784,12 +791,12 @@ function CTABanner() {
           Scrivimi su WhatsApp e insieme troviamo il giorno e il servizio giusto per te — senza fretta, senza coda.
         </p>
         <div style={{ display:'flex',gap:'1rem',justifyContent:'center',flexWrap:'wrap' }}>
-          <a href={WA_LINK} target="_blank" rel="noreferrer"
+          <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
             style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#F5F0EA',color:'#C41230',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.9rem 2.5rem',textDecoration:'none',transition:'all 0.3s ease' }}
             onMouseEnter={e=>{e.currentTarget.style.background='#1C1C1C';e.currentTarget.style.color='#F5F0EA'}}
             onMouseLeave={e=>{e.currentTarget.style.background='#F5F0EA';e.currentTarget.style.color='#C41230'}}
           ><MessageCircle size={15}/> Scrivimi su WhatsApp</a>
-          <a href={PHONE}
+          <a href={buildPhoneLink(info?.telefono)}
             style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'transparent',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:600,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.9rem 2.5rem',textDecoration:'none',border:'1.5px solid rgba(245,240,234,0.55)',transition:'all 0.3s ease' }}
             onMouseEnter={e=>{e.currentTarget.style.borderColor='#F5F0EA';e.currentTarget.style.background='rgba(245,240,234,0.1)'}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(245,240,234,0.55)';e.currentTarget.style.background='transparent'}}
@@ -804,7 +811,8 @@ const ORARI_VERSION = 2
 const DEFAULT_ORARI = "Lunedì: chiuso\nMartedì: 8:30 – 12:30 / 15:30 – 19:30\nMercoledì: 8:30 – 17:00\nGiovedì: 8:30 – 12:30 / 15:30 – 19:30\nVenerdì: 8:30 – 19:00\nSabato: 8:30 – 19:00\nDomenica: chiuso"
 
 /* ─── CONTACT ────────────────────────────────── */
-function Contact({ info }) {
+function Contact() {
+  const info = useInfo()
 
   return (
     <section id="contatti" style={{ padding:'9rem 2rem',background:'#F5F0EA' }}>
@@ -821,12 +829,12 @@ function Contact({ info }) {
 
         {/* CTA buttons */}
         <div style={{ display:'flex',gap:'1rem',justifyContent:'center',flexWrap:'wrap',marginTop:'3.5rem' }}>
-          <a href={WA_LINK} target="_blank" rel="noreferrer"
+          <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
             style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#25D366',color:'#fff',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'1rem 2.5rem',textDecoration:'none',transition:'all 0.35s ease' }}
             onMouseEnter={e=>{e.currentTarget.style.background='#1da851';e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.boxShadow='0 10px 28px rgba(37,211,102,0.35)'}}
             onMouseLeave={e=>{e.currentTarget.style.background='#25D366';e.currentTarget.style.transform='none';e.currentTarget.style.boxShadow='none'}}
           ><MessageCircle size={16}/> Scrivimi su WhatsApp</a>
-          <a href={PHONE}
+          <a href={buildPhoneLink(info?.telefono)}
             style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'transparent',color:'#C41230',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.68rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'1rem 2.5rem',textDecoration:'none',border:'1.5px solid #C41230',transition:'all 0.35s ease' }}
             onMouseEnter={e=>{e.currentTarget.style.background='#C41230';e.currentTarget.style.color='#F5F0EA';e.currentTarget.style.transform='translateY(-3px)'}}
             onMouseLeave={e=>{e.currentTarget.style.background='transparent';e.currentTarget.style.color='#C41230';e.currentTarget.style.transform='none'}}
@@ -858,7 +866,8 @@ function InfoCard({icon:Icon,label,val,idx}) {
 }
 
 /* ─── FOOTER ─────────────────────────────────── */
-function Footer({ info }) {
+function Footer() {
+  const info = useInfo()
   const orari = info?.orari || DEFAULT_ORARI
   const orariRows = orari.split('\n').map(line => {
     const idx = line.indexOf(':')
@@ -873,7 +882,7 @@ function Footer({ info }) {
             <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:300,color:'rgba(245,240,234,0.35)',lineHeight:1.85,marginBottom:'1.25rem' }}>
               Il tuo salone di fiducia ad Ascoli Piceno da oltre 20 anni.
             </p>
-            <a href={WA_LINK} target="_blank" rel="noreferrer"
+            <a href={buildWaLink(info?.whatsapp)} target="_blank" rel="noreferrer"
               style={{ display:'inline-flex',alignItems:'center',gap:'0.5rem',background:'#25D366',color:'#fff',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',padding:'0.6rem 1.2rem',textDecoration:'none',transition:'all 0.3s' }}
               onMouseEnter={e=>e.currentTarget.style.background='#1da851'}
               onMouseLeave={e=>e.currentTarget.style.background='#25D366'}
@@ -938,6 +947,7 @@ function SectionHeader({ tag, title, dark = false }) {
 const DEFAULT_INFO = {
   indirizzo: "Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)",
   telefono: "0736 342914",
+  whatsapp: DEFAULT_WA,
   orari: DEFAULT_ORARI,
 }
 
@@ -959,7 +969,7 @@ function Home() {
   }, [])
 
   return (
-    <>
+    <InfoCtx.Provider value={info}>
       <Navbar/>
       <Hero/>
       <Stats/>
@@ -968,9 +978,9 @@ function Home() {
       <Gallery/>
       <Reviews/>
       <CTABanner/>
-      <Contact info={info}/>
-      <Footer info={info}/>
-    </>
+      <Contact/>
+      <Footer/>
+    </InfoCtx.Provider>
   )
 }
 

@@ -639,7 +639,7 @@ function InfoTab() {
     telefono: '0736 342914',
     email: '',
     orari: 'Lunedì: chiuso\nMartedì: 8:30 – 12:30 / 15:30 – 19:30\nMercoledì: 8:30 – 17:00\nGiovedì: 8:30 – 12:30 / 15:30 – 19:30\nVenerdì: 8:30 – 19:00\nSabato: 8:30 – 19:00\nDomenica: chiuso',
-    whatsapp: '',
+    whatsapp: '3472113803',
     heroVideo: '',
     staffPhoto: '',
   })
@@ -709,8 +709,8 @@ function InfoTab() {
 
   const textFields = [
     { label: 'Indirizzo',        key: 'indirizzo', ph: 'Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)', multi: true },
-    { label: 'Telefono',         key: 'telefono',  ph: '0736 342914',   multi: false },
-    { label: 'WhatsApp (prefisso internazionale)', key: 'whatsapp', ph: '+390736342914', multi: false },
+    { label: 'Telefono (fisso – per le chiamate)', key: 'telefono', ph: '0736 342914', multi: false },
+    { label: 'WhatsApp (solo numero, es. 347 211 3803)', key: 'whatsapp', ph: '347 211 3803', multi: false },
     { label: 'Email',            key: 'email',     ph: 'info@parrucchieradebora.it', multi: false },
     { label: 'Orari di apertura', key: 'orari',   ph: 'Lun – Ven: 9:00 – 18:30\nSabato: 9:00 – 17:00\nDomenica: chiuso', multi: true },
   ]
