@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/dashboard
+
+Sitemap: https://www.parrucchieriadebora.it/sitemap.xml
