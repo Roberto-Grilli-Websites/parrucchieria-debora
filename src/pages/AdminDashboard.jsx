@@ -38,15 +38,11 @@ const DEFAULT_SERVICES = [
 ]
 
 const DEFAULT_GALLERY = [
-  { label: 'Balayage Naturale', sub: 'Colore', img: `${BASE}lavori/portfolio1-dopo.jpg`, type: 'image', images: [{ url: `${BASE}lavori/portfolio1-dopo.jpg`, badge: '' }, { url: `${BASE}lavori/portfolio1-prima.jpg`, badge: 'Prima' }] },
-  { label: 'Bob Liscio',             sub: 'Taglio',      img: `${BASE}lavori/Bob Liscio.jpg`,             type: 'image', images: [] },
-  { label: 'Onde Morbide',           sub: 'Piega',       img: `${BASE}lavori/Onde Morbide.jpg`,           type: 'image', images: [] },
-  { label: 'Colorazione Ramata',     sub: 'Colore',      img: `${BASE}lavori/kzUDHC9LPVl645UomcQxe_EnDt8DOn.jpg`, type: 'image', images: [] },
-  { label: 'Capelli Ricci Definiti', sub: 'Trattamento', img: `${BASE}lavori/Capelli Ricci Definiti.jpg`, type: 'image', images: [] },
-  { label: 'Pixie Cut',              sub: 'Taglio',      img: `${BASE}lavori/Pixie Cut.jpg`,              type: 'image', images: [] },
-  { label: 'Highlights Biondi',      sub: 'Colore',      img: `${BASE}lavori/Highlights Biondi.jpg`,      type: 'image', images: [] },
-  { label: 'Beach Waves',            sub: 'Piega',       img: `${BASE}lavori/Beach Waves.jpg`,            type: 'image', images: [] },
-  { label: 'Castano Cioccolato',     sub: 'Colore',      img: `${BASE}lavori/Castano Cioccolato.jpg`,     type: 'image', images: [] },
+  { label: 'Colorazione & Meches', sub: 'Colore',      img: `${BASE}lavori/portfolio1-dopo.jpg`, type: 'image', images: [{ url: `${BASE}lavori/portfolio1-dopo.jpg`, badge: '' }, { url: `${BASE}lavori/portfolio1-prima.jpg`, badge: 'Prima' }] },
+  { label: 'Meches su Biondo',     sub: 'Colore',      img: `${BASE}lavori/portfolio2-dopo.jpg`, type: 'image', images: [{ url: `${BASE}lavori/portfolio2-dopo.jpg`, badge: '' }, { url: `${BASE}lavori/portfolio2-prima.jpg`, badge: 'Prima' }] },
+  { label: 'Acconciatura Sposa',   sub: 'Sposa',       img: `${BASE}lavori/portfolio3-sposa.jpg`,type: 'image', images: [{ url: `${BASE}lavori/portfolio3-sposa.jpg`, badge: '' }] },
+  { label: 'Permanente Ricci',     sub: 'Trattamenti', img: `${BASE}lavori/portfolio4-dopo.jpg`, type: 'image', images: [{ url: `${BASE}lavori/portfolio4-dopo.jpg`, badge: '' }, { url: `${BASE}lavori/portfolio4-prima.jpg`, badge: 'Prima' }] },
+  { label: 'Silver Grey',          sub: 'Colore',      img: `${BASE}lavori/portfolio5-dopo.jpg`, type: 'image', images: [{ url: `${BASE}lavori/portfolio5-dopo.jpg`, badge: '' }, { url: `${BASE}lavori/portfolio5-prima.jpg`, badge: 'Prima' }] },
 ]
 
 /* ─── TABS ─────────────────────────────────────── */

@@ -204,15 +204,11 @@ const reviews = [
 ]
 
 const galleryItems = [
-  { label: 'Balayage Naturale',            sub: 'Colore',      gradient: 'linear-gradient(160deg,#2c1810 0%,#7a4a2a 50%,#c49a6c 100%)', img: `${BASE}lavori/portfolio1-dopo.jpg`, images: [{ src: `${BASE}lavori/portfolio1-dopo.jpg` }, { src: `${BASE}lavori/portfolio1-prima.jpg`, badge: 'Prima' }] },
-  { label: 'Bob Liscio',                   sub: 'Taglio',      gradient: 'linear-gradient(160deg,#0d0d0d 0%,#2a2a2a 50%,#4a4a4a 100%)', img: `${BASE}lavori/Bob Liscio.jpg` },
-  { label: 'Onde Morbide',                 sub: 'Piega',       gradient: 'linear-gradient(160deg,#1a0a05 0%,#5c3317 50%,#9b6b3a 100%)', img: `${BASE}lavori/Onde Morbide.jpg` },
-  { label: 'Colorazione Ramata',           sub: 'Colore',      gradient: 'linear-gradient(160deg,#4a0a00 0%,#a03020 50%,#d4622a 100%)', img: `${BASE}lavori/kzUDHC9LPVl645UomcQxe_EnDt8DOn.jpg` },
-  { label: 'Capelli Ricci Definiti',       sub: 'Trattamento', gradient: 'linear-gradient(160deg,#1a0e05 0%,#4a2e10 50%,#7a5a2a 100%)', img: `${BASE}lavori/Capelli Ricci Definiti.jpg` },
-  { label: 'Pixie Cut',                    sub: 'Taglio',      gradient: 'linear-gradient(160deg,#0a0a0a 0%,#1e1e1e 50%,#3a3a3a 100%)', img: `${BASE}lavori/Pixie Cut.jpg` },
-  { label: 'Highlights Biondi',            sub: 'Colore',      gradient: 'linear-gradient(160deg,#2a1e00 0%,#7a5c10 50%,#c9a227 100%)', img: `${BASE}lavori/Highlights Biondi.jpg` },
-  { label: 'Beach Waves',                  sub: 'Piega',       gradient: 'linear-gradient(160deg,#1e1205 0%,#6b4820 50%,#b07d3a 100%)', img: `${BASE}lavori/Beach Waves.jpg` },
-  { label: 'Castano Cioccolato',           sub: 'Colore',      gradient: 'linear-gradient(160deg,#1a0800 0%,#3d1a0a 50%,#6b3316 100%)', img: `${BASE}lavori/Castano Cioccolato.jpg` },
+  { label: 'Colorazione & Meches',  sub: 'Colore',      gradient: 'linear-gradient(160deg,#2c1810 0%,#7a4a2a 50%,#c49a6c 100%)', img: `${BASE}lavori/portfolio1-dopo.jpg`,  images: [{ src: `${BASE}lavori/portfolio1-dopo.jpg` }, { src: `${BASE}lavori/portfolio1-prima.jpg`, badge: 'Prima' }] },
+  { label: 'Meches su Biondo',      sub: 'Colore',      gradient: 'linear-gradient(160deg,#3a2e00 0%,#8a7020 50%,#d4b84a 100%)', img: `${BASE}lavori/portfolio2-dopo.jpg`,  images: [{ src: `${BASE}lavori/portfolio2-dopo.jpg` }, { src: `${BASE}lavori/portfolio2-prima.jpg`, badge: 'Prima' }] },
+  { label: 'Acconciatura Sposa',    sub: 'Sposa',       gradient: 'linear-gradient(160deg,#1a0a10 0%,#4a1a28 50%,#8a3a50 100%)', img: `${BASE}lavori/portfolio3-sposa.jpg`, images: [{ src: `${BASE}lavori/portfolio3-sposa.jpg` }] },
+  { label: 'Permanente Ricci',      sub: 'Trattamenti', gradient: 'linear-gradient(160deg,#2a1e05 0%,#6a5015 50%,#b08830 100%)', img: `${BASE}lavori/portfolio4-dopo.jpg`,  images: [{ src: `${BASE}lavori/portfolio4-dopo.jpg` }, { src: `${BASE}lavori/portfolio4-prima.jpg`, badge: 'Prima' }] },
+  { label: 'Silver Grey',           sub: 'Colore',      gradient: 'linear-gradient(160deg,#1a1a1a 0%,#484848 50%,#909090 100%)', img: `${BASE}lavori/portfolio5-dopo.jpg`,  images: [{ src: `${BASE}lavori/portfolio5-dopo.jpg` }, { src: `${BASE}lavori/portfolio5-prima.jpg`, badge: 'Prima' }] },
 ]
 
 /* ─── GLOBAL STYLES ──────────────────────────── */
@@ -720,7 +716,7 @@ function Reviews() {
             <p style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.72rem',fontWeight:300,color:'rgba(245,240,234,0.45)',lineHeight:1.7,margin:0 }}>
               La tua opinione aiuta altre clienti a sceglierci e ci spinge a fare sempre meglio.
             </p>
-            <a href="https://maps.google.com/?cid=2581769142938047537&action=write-review"
+            <a href="https://www.google.com/maps/place/Parrucchieria+Debora+di+Carboni+Debora/@42.849746,13.0100566,10z/data=!4m12!1m2!2m1!1sdebora+parruchiera!3m8!1s0x1331f0d97c4cd84f:0x23d4495b50e31431!8m2!3d42.849746!4d13.5868388!9m1!1b1!15sChNkZWJvcmEgcGFycnVjY2hpZXJhkgEKaGFpcl9zYWxvbuABAA!16s%2Fg%2F119wj0y07?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D"
               target="_blank" rel="noreferrer"
               style={{ display:'inline-flex',alignItems:'center',gap:'0.6rem',background:'#C41230',color:'#F5F0EA',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.65rem',letterSpacing:'0.2em',textTransform:'uppercase',padding:'0.85rem 2rem',textDecoration:'none',transition:'all 0.3s ease',marginTop:'0.5rem' }}
               onMouseEnter={e=>{e.currentTarget.style.background='#9E0E26';e.currentTarget.style.transform='translateY(-2px)';e.currentTarget.style.boxShadow='0 8px 24px rgba(196,18,48,0.4)'}}
