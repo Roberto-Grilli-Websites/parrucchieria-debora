@@ -904,12 +904,7 @@ function Footer() {
           <div>
             <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.6rem',fontWeight:700,letterSpacing:'0.25em',textTransform:'uppercase',color:'#C41230',marginBottom:'1.25rem' }}>Dove siamo</div>
             <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:300,color:'rgba(245,240,234,0.4)',lineHeight:1.85,marginBottom:'0.35rem',whiteSpace:'pre-line' }}>{info?.indirizzo || 'Via Celso Ulpiani, 15\n63100 Ascoli Piceno (AP)'}</div>
-            <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:400,color:'rgba(245,240,234,0.6)',marginBottom:'1.25rem' }}>{info?.telefono || '0736 342914'}</div>
-            <a href="#contatti"
-              style={{ display:'inline-block',background:'transparent',color:'#C41230',fontFamily:'Montserrat,sans-serif',fontWeight:700,fontSize:'0.6rem',letterSpacing:'0.18em',textTransform:'uppercase',padding:'0.6rem 1.2rem',textDecoration:'none',border:'1.5px solid rgba(196,18,48,0.4)',transition:'all 0.3s' }}
-              onMouseEnter={e=>{e.currentTarget.style.background='rgba(196,18,48,0.1)'}}
-              onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}
-            >Prenota ora</a>
+            <div style={{ fontFamily:'Montserrat,sans-serif',fontSize:'0.75rem',fontWeight:400,color:'rgba(245,240,234,0.6)' }}>{info?.telefono || '0736 342914'}</div>
           </div>
         </div>
         <div style={{ borderTop:'1px solid rgba(255,255,255,0.05)',paddingTop:'1.75rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'1rem' }}>
